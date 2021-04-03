@@ -13,7 +13,7 @@ import pickle
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-
+import pdb
 
 #
 from stable_baselines3.common import logger
@@ -87,6 +87,7 @@ def main():
     num_density_values = 10
     num_rollouts = num_density_values * num_rollouts_per_density
     n_roll = 0
+    # max_ep_length = 1
     max_ep_length = 5000
     
     high_level_planner = HighLevelPlanner(num_runs= num_rollouts_per_density,
@@ -117,6 +118,7 @@ def main():
             
         # Single episode until termination.
         while not (done or (ep_len >= max_ep_length)):
+            # pdb.set_trace()
             actions = obstacle_avoidance_agent.getActions(obs, done, images, current_goal)
 
             if ep_len == 5:
