@@ -26,12 +26,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Installing catkin tools
 RUN apt-get update && apt-get install -y python3-setuptools && pip3 install catkin-tools 
 
-RUN /bin/bash cd /root && git clone https://github.com/uzh-rpg/flightmare.git \
-    && echo "export FLIGHTMARE_PATH=/home/flightmare" >> ~/.bashrc\
-    && source ~/.bashrc
-
-RUN /bin/bash cd /root/flightmare/flightlib && pip3 install . \
-    && cd /root/flightmare/flightrl && pip3 install . \
-    && 
-
 RUN pip3 install jupyter
