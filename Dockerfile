@@ -27,3 +27,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get update && apt-get install -y python3-setuptools && pip3 install catkin-tools 
 
 RUN pip3 install jupyter
+
+WORKDIR "/home"
+
+RUN git clone https://github.com/uzh-rpg/flightmare.git 
+
+RUN export FLIGHTMARE_PATH=/home/flightmare
+
+WORKDIR "/home/flightmare/flightlib"
+RUN pip3 install .
+
+WORKDIR "/home/flightmare/flightrl"
+RUN pip3 install .
+
