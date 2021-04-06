@@ -33,7 +33,7 @@ RUN pip3 install jupyter
 
 WORKDIR "/root"
 
-RUN git clone https://github.com/uzh-rpg/flightmare.git 
+RUN git clone -b linn https://github.com/yuelinn/flightmare.git 
 
 RUN echo "export FLIGHTMARE_PATH=/root/flightmare" >> /home/.bashrc
 RUN  pip3 install scikit-build==0.11.1
