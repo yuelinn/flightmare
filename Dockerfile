@@ -35,11 +35,11 @@ WORKDIR "/root"
 
 RUN git clone -b linn https://github.com/yuelinn/flightmare.git 
 
-RUN echo "export FLIGHTMARE_PATH=/root/flightmare" >> /home/.bashrc
+RUN echo "export FLIGHTMARE_PATH=/root/flightmare" >> /root/.bashrc
 RUN  pip3 install scikit-build==0.11.1
 
 WORKDIR "/root/flightmare/flightlib"
-ENV FLIGHTMARE_PATH /home/flightmare
+ENV FLIGHTMARE_PATH /root/flightmare
 RUN pip3 install .
 
 WORKDIR "/root/flightmare/flightrl"
