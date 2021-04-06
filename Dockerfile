@@ -32,7 +32,8 @@ WORKDIR "/home"
 
 RUN git clone https://github.com/uzh-rpg/flightmare.git 
 
-RUN export FLIGHTMARE_PATH=/home/flightmare
+RUN echo "export FLIGHTMARE_PATH=/home/flightmare" >> ~/.bashrc
+RUN  pip3 install scikit-build==0.11.1
 
 WORKDIR "/home/flightmare/flightlib"
 RUN pip3 install .
