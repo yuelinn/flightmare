@@ -30,6 +30,8 @@ RUN /bin/bash cd /home && git clone https://github.com/uzh-rpg/flightmare.git \
     && echo "export FLIGHTMARE_PATH=/home/flightmare" >> ~/.bashrc
     && source ~/.bashrc
 
-RUN /bin/bash cd /home/flightmare/flightlib && pip3 install . \
-    && cd /home/flightmare/flightrl && pip3 install . \
+RUN /bin/bash cd /root/challenge/flightmare/flightlib && pip3 install . \
+    && cd /root/challenge/flightmare/flightrl && pip3 install . \
     && 
+
+RUN pip3 install jupyter
