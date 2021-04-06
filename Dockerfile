@@ -26,6 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Installing catkin tools
 RUN apt-get update && apt-get install -y python3-setuptools && pip3 install catkin-tools 
 
+RUN pip3 install --upgrade setuptools
+RUN pip3 install --upgrade pip
+
 RUN pip3 install jupyter
 
 WORKDIR "/home"
