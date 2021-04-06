@@ -46,5 +46,5 @@ WORKDIR "/home/flightmare/flightrl"
 ENV FLIGHTMARE_PATH /home/flightmare
 RUN pip3 install .
 
-
+RUN pip3 install tensorflow-gpu==1.14
 
