@@ -31,20 +31,20 @@ RUN pip3 install --upgrade pip
 
 RUN pip3 install jupyter
 
-WORKDIR "/home"
+WORKDIR "/root"
 
 RUN git clone https://github.com/uzh-rpg/flightmare.git 
 
-RUN echo "export FLIGHTMARE_PATH=/home/flightmare" >> /home/.bashrc
+RUN echo "export FLIGHTMARE_PATH=/root/flightmare" >> /home/.bashrc
 RUN  pip3 install scikit-build==0.11.1
 
-WORKDIR "/home/flightmare/flightlib"
+WORKDIR "/root/flightmare/flightlib"
 ENV FLIGHTMARE_PATH /home/flightmare
 RUN pip3 install .
 
-WORKDIR "/home/flightmare/flightrl"
-ENV FLIGHTMARE_PATH /home/flightmare
+WORKDIR "/root/flightmare/flightrl"
 RUN pip3 install .
 
 RUN pip3 install tensorflow-gpu==1.14
 
+WORKDIR "/root"
