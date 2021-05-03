@@ -9,18 +9,120 @@ import numpy as np
 import time
 import sys
 import torch
+import pdb
+import copy
 
 #
 from stable_baselines3.common import logger
 
 #
 from stable_baselines3.ppo.ppo import PPO
+from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.callbacks import CheckpointCallback
+
 from rpg_baselines.ppo.ppo2_test import test_model
 import rpg_baselines.common.util as U
 from rpg_baselines.envs import vec_env_wrapper as wrapper
 from scipy.spatial.transform import Rotation 
 #
 from flightgym import QuadrotorEnv_v1
+
+
+
+
+class RandGoalsCallback(BaseCallback):
+    """
+    A custom callback that derives from ``BaseCallback``.
+
+    :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
+    """
+    def __init__(self, waypt_gap_m=5.0, goal_tol_m=1.0, verbose=0):
+    # def __init__(self, callback: Optional[BaseCallback] = None, verbose: int = 0):
+        super(RandGoalsCallback, self).__init__(verbose)
+        # Those variables will be accessible in the callback
+        # (they are defined in the base class)
+        # The RL model
+        # self.model = None  # type: BaseAlgorithm
+        # An alias for self.model.get_env(), the environment used for training
+        # self.training_env = None  # type: Union[gym.Env, VecEnv, None]
+        # Number of time the callback was called
+        # self.n_calls = 0  # type: int
+        # self.num_timesteps = 0  # type: int
+        # local and global variables
+        # self.locals = None  # type: Dict[str, Any]
+        # self.globals = None  # type: Dict[str, Any]
+        # The logger object, used to report things in the terminal
+        # self.logger = None  # stable_baselines3.common.logger
+        # # Sometimes, for event callback, it is useful
+        # # to have access to the parent object
+        # self.parent = None  # type: Optional[BaseCallback]
+        print("Setting rand goals for training...")
+        self.waypt_gap_m=waypt_gap_m # max distance between the gen goal n the robot at time of gen
+        self.goal_tol_m=goal_tol_m # min dist to consider the goal is met
+
+    def _on_training_start(self) -> None:
+        """
+        This method is called before the first rollout starts.
+        """
+        pass
+
+    def _on_rollout_start(self) -> None:
+        """
+        A rollout is the collection of environment interaction
+        using the current policy.
+        This event is triggered before collecting new samples.
+        """
+        pass
+
+    def _on_step(self) -> bool:
+        """
+        This method will be called by the model after each call to `env.step()`.
+
+        For child callback (of an `EventCallback`), this will be called
+        when the event is triggered.
+
+        :return: (bool) If the callback returns False, training is aborted early.
+        """
+        
+        # print("global keys", self.globals.keys())
+        # print("local keys", self.locals.keys())
+
+        # check if near goal
+        # TODO: check if this is the correct tensor?
+        obs_tensor=(self.locals["obs_tensor"]).numpy()
+        pos=obs_tensor[0,:3]
+        goal=obs_tensor[0,-3:]
+        dist=np.sqrt(np.sum((goal-pos) ** 2))
+        if dist < self.goal_tol_m: # if reached goal
+            # set a new goal
+            new_goal= pos+np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
+            # FIXME: check that the goal is not beyond the walls
+
+
+            # pdb.set_trace()
+            new_obs=copy.deepcopy(obs_tensor)
+            new_obs[0,-3:]=new_goal
+            self.locals["obs_tensor"]=torch.from_numpy(new_obs)
+            # print("new obs: ", self.locals["obs_tensor"])
+
+
+
+
+        return True
+
+    def _on_rollout_end(self) -> None:
+        """
+        This event is triggered before updating the policy.
+        """
+        pass
+
+    def _on_training_end(self) -> None:
+        """
+        This event is triggered before exiting the `learn()` method.
+        """
+        pass
+
+
 
 
 def configure_random_seed(seed, env=None):
@@ -71,10 +173,12 @@ def main():
 
     max_ep_length = env.max_episode_steps
 
-    if env.num_envs == 1:
-        object_density_fractions = np.ones([env.num_envs], dtype=np.float32)
-    else:
-        object_density_fractions = np.linspace(0.0, 1.0, num=env.num_envs)
+    # FIXME: no obstacles for now
+    object_density_fractions = np.zeros([env.num_envs], dtype=np.float32)
+    # if env.num_envs == 1:
+    #     object_density_fractions = np.ones([env.num_envs], dtype=np.float32)
+    # else:
+    #     object_density_fractions = np.linspace(0.0, 1.0, num=env.num_envs)
 
     env.set_objects_densities(object_density_fractions = object_density_fractions)   
     env.reset()
@@ -102,8 +206,14 @@ def main():
         # 1000000000 is 2000 iterations and so
         # 2000000000 is 4000 iterations.
         logger.configure(folder=saver.data_dir)
+        # Save a checkpoint every 1000 steps
+        checkpoint_callback = CheckpointCallback(save_freq=1000, save_path=saver.data_dir+'/weights/', name_prefix='w_time_')
+        # TODO: make callback that saves only if the returns have improved
+
+        randgoalscallback=RandGoalsCallback()
+
         model.learn(
-            total_timesteps=int(25000000))
+            total_timesteps=int(1000000), callback=[randgoalscallback, checkpoint_callback], tb_log_name="test")
         model.save(saver.data_dir)
 
     # # Testing mode with a trained weight
