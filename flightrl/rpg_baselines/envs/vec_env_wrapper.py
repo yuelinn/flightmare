@@ -19,7 +19,7 @@ class FlightEnvVec(VecEnv):
             low=np.ones(self.num_acts) * -1.,
             high=np.ones(self.num_acts) * 1.,
             dtype=np.float32)
-        self._observation = np.zeros((self.num_envs, self.num_obs  + self.frame_dim[0] * self.frame_dim[1]), dtype=np.float32)
+        self._observation = np.zeros((self.num_envs, self.num_obs), dtype=np.float32)
         self._images = np.zeros((self.num_envs, self.frame_dim[0], self.frame_dim[1]), dtype=np.float32)
         self._odometry = np.zeros([self.num_envs, self.num_obs], dtype=np.float32)
         self.img_array = np.zeros((self.num_envs, self.frame_dim[0]*self.frame_dim[1]), dtype=np.float32)
@@ -48,12 +48,7 @@ class FlightEnvVec(VecEnv):
     def step(self, action):
         self.wrapper.step(action, self._odometry, self.img_array,
                           self._reward, self._done, self._extraInfo)
-        # Hy's edits here
-        self._observation = np.zeros((self.num_envs, self.num_obs  + self.frame_dim[0] * self.frame_dim[1]), dtype=np.float32)
-        self._observation[:, :self.num_obs] = self._odometry
-        self._observation[:, self.num_obs:] = self.img_array.copy()
-        # end of edited section 
-        #self._observation = self._odometry
+        self._observation = self._odometry
 
         # Images are accessible from here, self._images is of shape [self.num_envs, self.frame_dim[0], self.frame_dim[1]]
         self._images = self.obs_array2image()

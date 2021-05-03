@@ -14,7 +14,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-
 #
 from stable_baselines3.common import logger
 
@@ -114,7 +113,8 @@ def main():
         # get current goal position 
         drone_pos = obs[0, :3]
         current_goal , _, _ = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))
-            
+        drone_goal = obs[0, 12:]
+
         # Single episode until termination.
         while not (done or (ep_len >= max_ep_length)):
             actions = obstacle_avoidance_agent.getActions(obs, done, images, current_goal)
@@ -135,12 +135,13 @@ def main():
                 high_level_planner.to_next_run()      
                     
             if done_from_high_level_planner:
+                print("before reset " + str(obs[0, :3]))
                 obs = env.reset()
                 images = env.get_images()
                 current_goal , _ , _ = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))      
                 episodes_terminal_goal_number[n_roll] = high_level_planner_goal_reached_number
                 episodes_survived[n_roll] = 1
-                
+                print("after reset " + str(obs[0, 12:]))
         episodes_lengths[n_roll] = ep_len
         n_roll = n_roll + 1
         
