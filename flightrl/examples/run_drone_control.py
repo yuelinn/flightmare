@@ -17,11 +17,13 @@ from stable_baselines3.common import logger
 from stable_baselines3.ppo.ppo import PPO
 from rpg_baselines.ppo.ppo2_test import test_model
 import rpg_baselines.common.util as U
+from rpg_baselines.common.high_level_planner import HighLevelPlanner
 from rpg_baselines.envs import vec_env_wrapper as wrapper
 from scipy.spatial.transform import Rotation 
+
 #
 from flightgym import QuadrotorEnv_v1
-
+from test import CustomCallback
 
 def configure_random_seed(seed, env=None):
     if env is not None:
@@ -94,7 +96,7 @@ def main():
 
         # tensorboard
         # Make sure that your chrome browser is already on.
-        # TensorboardLauncher(saver.data_dir + '/PPO2_1')
+        #U.TensorboardLauncher(saver.data_dir + '/PPO2_1')
 
         # PPO run
         # Originally the total timestep is 5 x 10^8
@@ -102,8 +104,20 @@ def main():
         # 1000000000 is 2000 iterations and so
         # 2000000000 is 4000 iterations.
         logger.configure(folder=saver.data_dir)
-        model.learn(
-            total_timesteps=int(25000000))
+        n_iter = 500
+        callbacks = CustomCallback()
+        planner = HighLevelPlanner(num_runs= n_iter,
+                                        num_goals_per_run = 1,
+                                        world_box = [-15, -15, 0, 15, 15, 8])
+        for i in range(n_iter): 
+            obs = env._observation
+            drone_pos = obs[:, 0:3]
+            current_goal , _, _ = planner.get_current_goal(drone_position=drone_pos, num_run=i)
+            callbacks.set_goal(current_goal)
+            print("current goal: " + str(current_goal))
+            model.learn(total_timesteps=int(50000), callback=callbacks)
+            planner.to_next_run()
+        
         model.save(saver.data_dir)
 
     # # Testing mode with a trained weight

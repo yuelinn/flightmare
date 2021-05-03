@@ -21,10 +21,10 @@ from stable_baselines3.common import logger
 from stable_baselines3.ppo.ppo import PPO
 from rpg_baselines.ppo.ppo2_test import test_model
 import rpg_baselines.common.util as U
+from rpg_baselines.common.high_level_planner import HighLevelPlanner
 from rpg_baselines.envs import vec_env_wrapper as wrapper
 from scipy.spatial.transform import Rotation 
 from utils import skip_first_few_episodes
-from high_level_planner import HighLevelPlanner
 #
 from flightgym import QuadrotorEnv_v1
 
@@ -42,6 +42,9 @@ def parser():
                         help="Random seed")
     parser.add_argument('--policy_path', type=str,
                         default="")
+    parser.add_argument('-w', '--weight', type=str, default='./saved/quadrotor_env.zip',
+        help='trained weight path')
+
     return parser
 
 def main():   
@@ -54,7 +57,7 @@ def main():
       sys.path.insert(1, policy_path)
       from policy_path import ObstacleAvoidanceAgent
     else:
-      from obstacle_avoidance_agent import ObstacleAvoidanceAgent
+      from obstacle_avoidance_agent import ObstacleAvoidanceAgent, PPOAgent
             
     cfg_vec_env["env"]["render"] = "yes"
     cfg_vec_env["env"]["num_envs"] = 1
@@ -70,8 +73,9 @@ def main():
         if not connectedToUnity:  
             print("Couldn't connect to unity, will try another time.")    
             
-    obstacle_avoidance_agent = ObstacleAvoidanceAgent(num_envs=env.num_envs, num_acts=env.num_acts)                    
-    
+    #obstacle_avoidance_agent = ObstacleAvoidanceAgent(num_envs=env.num_envs, num_acts=env.num_acts)                    
+    obstacle_avoidance_agent = PPOAgent(args.weight)
+
     # set object density to zero 
     object_density_fractions = np.zeros([env.num_envs], dtype=np.float32)
     env.set_objects_densities(object_density_fractions = object_density_fractions)
@@ -110,13 +114,14 @@ def main():
         if (n_roll == 0):
             obs = env.reset()
             images = env.get_images()
+
         # get current goal position 
         drone_pos = obs[0, :3]
         current_goal , _, _ = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))
-        drone_goal = obs[0, 12:]
 
         # Single episode until termination.
         while not (done or (ep_len >= max_ep_length)):
+
             actions = obstacle_avoidance_agent.getActions(obs, done, images, current_goal)
 
             if ep_len == 5:
@@ -128,20 +133,19 @@ def main():
         
             drone_pos = obs[0, :3]
             current_goal , done_from_high_level_planner, high_level_planner_goal_reached_number = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))      
-            
-            
+            print("current drone pos: " + str(drone_pos) + 
+            "curren goal pos: " + str(current_goal))
+
             if done:
                 episodes_terminal_goal_number[n_roll] = high_level_planner_goal_reached_number
                 high_level_planner.to_next_run()      
                     
             if done_from_high_level_planner:
-                print("before reset " + str(obs[0, :3]))
                 obs = env.reset()
                 images = env.get_images()
                 current_goal , _ , _ = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))      
                 episodes_terminal_goal_number[n_roll] = high_level_planner_goal_reached_number
                 episodes_survived[n_roll] = 1
-                print("after reset " + str(obs[0, 12:]))
         episodes_lengths[n_roll] = ep_len
         n_roll = n_roll + 1
         
