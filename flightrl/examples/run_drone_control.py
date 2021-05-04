@@ -121,8 +121,8 @@ class RandGoalsCallback(BaseCallback):
         new_obs[0,-3:]=self.goal
         self.locals["new_obs"]=new_obs
 
-        pdb.set_trace()        
-        self.training_env.set_goal(self.goal)
+        # pdb.set_trace()        
+        self.training_env.set_goal(new_obs)
 
         # self.locals["obs_tensor"]=torch.from_numpy(new_obs)
         # print("new obs ", self.locals["obs_tensor"])
