@@ -57,7 +57,7 @@ class RandGoalsCallback(BaseCallback):
         print("Setting rand goals for training...")
         self.waypt_gap_m=waypt_gap_m # max distance between the gen goal n the robot at time of gen
         self.goal_tol_m=goal_tol_m # min dist to consider the goal is met
-        self.goal=np.array([5.0, 5.0, 0.0])
+        self.goal=np.array([5.0, 5.0, 5.0]);
 
     def _on_training_start(self) -> None:
         """
@@ -89,6 +89,9 @@ class RandGoalsCallback(BaseCallback):
         # check if near goal
         # TODO: check if this is the correct tensor?
         obs_tensor=(self.locals["new_obs"])
+        # print("obs: ", self.locals["new_obs"])
+
+
         # obs_tensor=(self.locals["obs_tensor"]).numpy()
         pos=obs_tensor[0,:3]
         # goal=obs_tensor[0,-3:]
@@ -114,10 +117,14 @@ class RandGoalsCallback(BaseCallback):
             self.goal=new_goal
             # print("new obs: ", self.locals["obs_tensor"])
 
-        # pdb.set_trace()
         new_obs=copy.deepcopy(obs_tensor)
         new_obs[0,-3:]=self.goal
-        self.locals["obs_tensor"]=torch.from_numpy(new_obs)
+        self.locals["new_obs"]=new_obs
+
+        pdb.set_trace()        
+        self.training_env.set_goal(self.goal)
+
+        # self.locals["obs_tensor"]=torch.from_numpy(new_obs)
         # print("new obs ", self.locals["obs_tensor"])
 
         return True

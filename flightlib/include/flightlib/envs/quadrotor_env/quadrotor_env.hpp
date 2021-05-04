@@ -54,6 +54,9 @@ class QuadrotorEnv final : public EnvBase {
   QuadrotorEnv(const std::string &cfg_path);
   ~QuadrotorEnv();
 
+  // Linn stuff
+  bool set_goal(Ref<Vector<>> goal);
+
   // - public OpenAI-gym-style functions
   bool reset(Ref<Vector<>> obs, Ref<DepthImage<>> img, const bool random = true) override;
   bool resetObs(Ref<Vector<>> obs, const bool random = true);

@@ -26,6 +26,9 @@ class VecEnv {
   VecEnv(const YAML::Node& cfgs_node);
   ~VecEnv();
 
+  // Linn stuff
+  bool set_goal(Ref<MatrixRowMajor<>> goal);
+
   // - public OpenAI-gym style functions for vectorized environment
   bool reset(Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img);
   bool step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img,

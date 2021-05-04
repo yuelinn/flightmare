@@ -35,6 +35,11 @@ class FlightEnvVec(VecEnv):
 
     def seed(self, seed=0):
         self.wrapper.setSeed(seed)
+
+    def set_goal(self, goal):
+        print("setting new goal: ", goal)
+        self.wrapper.set_goal(goal)
+        return True
         
     def set_objects_densities(self, object_density_fractions):
         if(self.render):
@@ -83,6 +88,7 @@ class FlightEnvVec(VecEnv):
     
     def get_images(self):
         return self._images.copy()
+
 
     def stepUnity(self, action, send_id):
         receive_id = self.wrapper.stepUnity(action, self._odometry, self.img_array,
