@@ -188,9 +188,9 @@ bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
 //--------------------------------//
 
 bool QuadrotorEnv::set_goal(Ref<Vector<>> goal){
-  std::cout <<  "reseting goal state to " << goal << std::endl;
-  goal_state_ << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 0.0, 0.0, 0.0, 0.0, 0.0;
+  // std::cout <<  "reseting goal state to " << goal << std::endl;
+  goal_state_ << goal;
+  // TODO: check if this actl works or not
   return true;    
 }
 
