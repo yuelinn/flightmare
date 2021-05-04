@@ -28,15 +28,13 @@ from scipy.spatial.transform import Rotation
 from flightgym import QuadrotorEnv_v1
 
 
-
-
 class RandGoalsCallback(BaseCallback):
     """
     A custom callback that derives from ``BaseCallback``.
 
     :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
     """
-    def __init__(self, waypt_gap_m=5.0, goal_tol_m=1.0, verbose=0):
+    def __init__(self, waypt_gap_m=10.0, goal_tol_m=1.0, verbose=0):
     # def __init__(self, callback: Optional[BaseCallback] = None, verbose: int = 0):
         super(RandGoalsCallback, self).__init__(verbose)
         # Those variables will be accessible in the callback
@@ -59,6 +57,7 @@ class RandGoalsCallback(BaseCallback):
         print("Setting rand goals for training...")
         self.waypt_gap_m=waypt_gap_m # max distance between the gen goal n the robot at time of gen
         self.goal_tol_m=goal_tol_m # min dist to consider the goal is met
+        self.goal=np.array([5.0, 5.0, 0.0])
 
     def _on_training_start(self) -> None:
         """
@@ -89,24 +88,37 @@ class RandGoalsCallback(BaseCallback):
 
         # check if near goal
         # TODO: check if this is the correct tensor?
-        obs_tensor=(self.locals["obs_tensor"]).numpy()
+        obs_tensor=(self.locals["new_obs"])
+        # obs_tensor=(self.locals["obs_tensor"]).numpy()
         pos=obs_tensor[0,:3]
-        goal=obs_tensor[0,-3:]
-        dist=np.sqrt(np.sum((goal-pos) ** 2))
+        # goal=obs_tensor[0,-3:]
+        dist=np.sqrt(np.sum((self.goal-pos) ** 2))
+
         if dist < self.goal_tol_m: # if reached goal
             # set a new goal
-            new_goal= pos+np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
-            # FIXME: check that the goal is not beyond the walls
+            offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
 
+            # if it is too close to curr pose
+            while np.any(offset < 1.0):
+                # TODO: I could make this more efficient but I dun feel like it...
+                offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
 
-            # pdb.set_trace()
-            new_obs=copy.deepcopy(obs_tensor)
-            new_obs[0,-3:]=new_goal
-            self.locals["obs_tensor"]=torch.from_numpy(new_obs)
+            new_goal= pos+offset
+
+            # check bounds
+            if np.any(new_goal > 14.0) or np.any(new_goal < -14.0) :
+                new_goal[0]= new_goal[0]-10.0
+            new_goal[2]=np.random.uniform(0, 7.0)
+            print("new goal ", new_goal)
+
+            self.goal=new_goal
             # print("new obs: ", self.locals["obs_tensor"])
 
-
-
+        # pdb.set_trace()
+        new_obs=copy.deepcopy(obs_tensor)
+        new_obs[0,-3:]=self.goal
+        self.locals["obs_tensor"]=torch.from_numpy(new_obs)
+        # print("new obs ", self.locals["obs_tensor"])
 
         return True
 
