@@ -118,6 +118,7 @@ class RandGoalsCallback(BaseCallback):
             # print("new obs: ", self.locals["obs_tensor"])
 
         new_obs=copy.deepcopy(obs_tensor)
+        new_obs[0,0:3]=self.goal
         new_obs[0,-3:]=self.goal
         self.locals["new_obs"]=new_obs
 

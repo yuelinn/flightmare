@@ -90,6 +90,13 @@ template<typename EnvBase>
 VecEnv<EnvBase>::~VecEnv() {}
 
 template<typename EnvBase>
+bool VecEnv<EnvBase>::set_goal(Ref<MatrixRowMajor<>> goal){
+  // std::cout <<  "reseting goal state to " << goal << std::endl;
+  return true;    
+}
+
+
+template<typename EnvBase>
 bool VecEnv<EnvBase>::reset(Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img) {
   if (obs.rows() != num_envs_ || obs.cols() != obs_dim_ ||
       img.rows() != num_envs_ || img.cols() != frame_dim_.first*frame_dim_.second ) {
