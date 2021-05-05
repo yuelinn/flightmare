@@ -115,14 +115,14 @@ class RandGoalsCallback(BaseCallback):
             new_goal[2]=np.random.uniform(0, 7.0)
             print("new goal ", new_goal)
 
-            self.goal=new_goal
+            self.goal=np.array(new_goal, dtype=np.float32)
             # print("new obs: ", self.locals["obs_tensor"])
 
-            new_obs=copy.deepcopy(obs_tensor)
-            new_obs[0,-3:]=self.goal
+            # new_obs=copy.deepcopy(obs_tensor)
+            # new_obs[0,-3:]=self.goal
             # self.locals["new_obs"]=new_obs
             # self.locals["obs_tensor"]=torch.from_numpy(new_obs)
-            self.training_env.set_goal(new_goal)
+            self.training_env.set_goal(self.goal)
 
 
         # self.locals["obs_tensor"]=torch.from_numpy(new_obs)
