@@ -34,7 +34,7 @@ class RandGoalsCallback(BaseCallback):
 
     :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
     """
-    def __init__(self, waypt_gap_m=10.0, goal_tol_m=1.0, verbose=0):
+    def __init__(self, waypt_gap_m=10.0, goal_tol_m=3.0, verbose=0):
     # def __init__(self, callback: Optional[BaseCallback] = None, verbose: int = 0):
         super(RandGoalsCallback, self).__init__(verbose)
         # Those variables will be accessible in the callback
@@ -71,6 +71,7 @@ class RandGoalsCallback(BaseCallback):
         using the current policy.
         This event is triggered before collecting new samples.
         """
+        self.goal=np.array([5.0, 5.0, 5.0], dtype=np.float32)
         new_goal=copy.deepcopy(self.goal)
         self.training_env.set_goal(new_goal)
 
@@ -217,6 +218,9 @@ def main():
         saver = U.ConfigurationSaver(log_dir=log_dir)
         model = PPO('MlpPolicy', env, verbose=2,
                     tensorboard_log=saver.data_dir)
+
+        # TODO: fine tuning from hover policy
+        # model=PPO.load("./saved/2021-05-03-20-34-51")
 
         # tensorboard
         # Make sure that your chrome browser is already on.
