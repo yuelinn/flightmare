@@ -91,8 +91,10 @@ VecEnv<EnvBase>::~VecEnv() {}
 
 template<typename EnvBase>
 bool VecEnv<EnvBase>::set_goal(Ref<MatrixRowMajor<>> goal){
-  // std::cout <<  "reseting goal state to " << goal << std::endl;
-  return true;    
+  // std::cout <<  "env base template: reseting goal state to " << goal << std::endl;
+  bool is_linn_set;
+  is_linn_set=envs_[0]->set_goal(goal.row(0));
+  return is_linn_set;    
 }
 
 

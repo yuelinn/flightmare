@@ -37,7 +37,7 @@ class FlightEnvVec(VecEnv):
         self.wrapper.setSeed(seed)
 
     def set_goal(self, goal):
-        # print("setting new goal: ", goal)
+        # print("vec env wrapper: setting new goal: ", goal)
         self.wrapper.set_goal(goal)
         return True
         

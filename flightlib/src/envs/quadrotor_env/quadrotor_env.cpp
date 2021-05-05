@@ -75,7 +75,7 @@ void QuadrotorEnv::setResetPose(Vector<3> &resetPosition, Vector<3> &resetRotati
   resetRotation_ = resetRotation;
   quadrotor_ptr_->box_center_ = resetPosition_;
 
-  int goalDistance = 35;
+  int goalDistance = 35; // linn: wtf is this for??
 
   // Adjust goal position accordingly.
   goal_state_(0) = resetPosition(0);
@@ -188,9 +188,24 @@ bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
 //--------------------------------//
 
 bool QuadrotorEnv::set_goal(Ref<Vector<>> goal){
-  // std::cout <<  "reseting goal state to " << goal << std::endl;
-  goal_state_ << goal;
-  // TODO: check if this actl works or not
+  // std::cout <<  "DBG: reseting goal state to " << goal<< std::endl;
+    // Adjust goal position accordingly.
+  // goal_state_(0) = goal(0);
+  // goal_state_(1) = goal(1); 
+  // goal_state_(2) = goal(2);
+  // goal_state_(12) = goal(0);
+  // goal_state_(13) = goal(1); 
+  // goal_state_(24) = goal(2);
+
+  goal_x=goal(0);
+  goal_y=goal(1);
+  goal_z=goal(2);
+
+  // goal_x=7.0;
+  // goal_y=7.0;
+  // goal_z=7.0;
+
+  // TODO: check if this actl works or not... why dis no work... sed.
   return true;    
 }
 
@@ -203,12 +218,19 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   quadrotor_ptr_->run(cmd_, sim_dt_);
 
   // update observations
+  goal_state_(0) = goal_x;
+  goal_state_(1) =  goal_y;
+  goal_state_(2) = goal_z;
+  goal_state_(12) = goal_x;
+  goal_state_(13) =  goal_y;
+  goal_state_(14) = goal_z;
   getObs(obs);
 
   Matrix<3, 3> rot = quad_state_.q().toRotationMatrix();
 
   //--- REWARD DESIGN IS DONE HERE --//
   // this reward will not work for the task, it's just to show a use case 
+
   Scalar pos_reward =
     pos_coeff_ * (quad_obs_.segment<quadenv::kNPos>(quadenv::kPos) -
                   goal_state_.segment<quadenv::kNPos>(quadenv::kPos))

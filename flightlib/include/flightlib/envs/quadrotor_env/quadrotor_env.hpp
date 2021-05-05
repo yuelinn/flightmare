@@ -128,6 +128,11 @@ class QuadrotorEnv final : public EnvBase {
 
   bool justHadCollision = false;
   int collision_step_count = 0;
+
+  // goal
+  float goal_x=6.0;
+  float goal_y=6.0;
+  float goal_z=6.0;
 };
 
 }  // namespace flightlib
