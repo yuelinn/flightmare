@@ -58,6 +58,7 @@ class RandGoalsCallback(BaseCallback):
         self.waypt_gap_m=waypt_gap_m # max distance between the gen goal n the robot at time of gen
         self.goal_tol_m=goal_tol_m # min dist to consider the goal is met
         self.goal=np.array([5.0, 5.0, 5.0], dtype=np.float32)
+        self.is_reached_goal=False
 
     def _on_training_start(self) -> None:
         """
@@ -71,9 +72,30 @@ class RandGoalsCallback(BaseCallback):
         using the current policy.
         This event is triggered before collecting new samples.
         """
-        self.goal=np.array([5.0, 5.0, 5.0], dtype=np.float32)
-        new_goal=copy.deepcopy(self.goal)
-        self.training_env.set_goal(new_goal)
+
+        # if(self.is_reached_goal):
+        if True:
+            print("new episode, new goal")
+
+            offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
+
+            # if it is too close to curr pose
+            while np.any(offset < 1.0):
+                # TODO: I could make this more efficient but I dun feel like it...
+                offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
+
+            new_goal= offset
+
+            # check bounds
+            if np.any(new_goal > 14.0) or np.any(new_goal < -14.0) :
+                new_goal[0]= new_goal[0]-10.0
+            new_goal[2]=np.random.uniform(0, 7.0)
+            print("new goal ", new_goal)
+
+            self.goal=np.array(new_goal, dtype=np.float32)
+
+            self.training_env.set_goal(self.goal)
+
 
     def _on_step(self) -> bool:
         """
@@ -89,10 +111,8 @@ class RandGoalsCallback(BaseCallback):
         # print("local keys", self.locals.keys())
 
         # check if near goal
-        # TODO: check if this is the correct tensor?
         obs_tensor=(self.locals["new_obs"])
         print("obs: ", self.locals["new_obs"])
-
 
         # obs_tensor=(self.locals["obs_tensor"]).numpy()
         pos=obs_tensor[0,:3]
@@ -100,36 +120,18 @@ class RandGoalsCallback(BaseCallback):
         dist=np.sqrt(np.sum((self.goal-pos) ** 2))
 
         if dist < self.goal_tol_m: # if reached goal
-            # set a new goal
-            offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
+            self.is_reached_goal=True # set a new goal
 
-            # if it is too close to curr pose
-            while np.any(offset < 1.0):
-                # TODO: I could make this more efficient but I dun feel like it...
-                offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
-
-            new_goal= pos+offset
-
-            # check bounds
-            if np.any(new_goal > 14.0) or np.any(new_goal < -14.0) :
-                new_goal[0]= new_goal[0]-10.0
-            new_goal[2]=np.random.uniform(0, 7.0)
-            print("new goal ", new_goal)
-
-            self.goal=np.array(new_goal, dtype=np.float32)
-            # print("new obs: ", self.locals["obs_tensor"])
-
-            # new_obs=copy.deepcopy(obs_tensor)
-            # new_obs[0,-3:]=self.goal
-            # self.locals["new_obs"]=new_obs
-            # self.locals["obs_tensor"]=torch.from_numpy(new_obs)
-            self.training_env.set_goal(self.goal)
-
-
-        # self.locals["obs_tensor"]=torch.from_numpy(new_obs)
-        # self.locals["new_obs"]=new_obs
-
-        # print("new obs ", self.locals["obs_tensor"])
+        # diff and normalise before giving PPO
+        new_obs=copy.deepcopy(obs_tensor)
+        new_obs[0,0]=obs_tensor[0,0]-obs_tensor[0,12]
+        new_obs[0,1]=obs_tensor[0,1]-obs_tensor[0,13]
+        new_obs[0,2]=obs_tensor[0,2]-obs_tensor[0,14]
+        new_obs[0,12]=0.0
+        new_obs[0,13]=0.0
+        new_obs[0,14]=0.0
+        new_obs=new_obs/10.0
+        self.locals["new_obs"]=new_obs
 
         return True
 
@@ -233,13 +235,13 @@ def main():
         # 2000000000 is 4000 iterations.
         logger.configure(folder=saver.data_dir)
         # Save a checkpoint every 1000 steps
-        checkpoint_callback = CheckpointCallback(save_freq=1000, save_path=saver.data_dir+'/weights/', name_prefix='w_time_')
+        checkpoint_callback = CheckpointCallback(save_freq=100000, save_path=saver.data_dir+'/weights/', name_prefix='w_time_')
         # TODO: make callback that saves only if the returns have improved
 
         randgoalscallback=RandGoalsCallback()
 
         model.learn(
-            total_timesteps=int(1000000), callback=[randgoalscallback, checkpoint_callback], tb_log_name="test")
+            total_timesteps=int(3000000), callback=[randgoalscallback, checkpoint_callback], tb_log_name="test")
         model.save(saver.data_dir)
 
     # # Testing mode with a trained weight
