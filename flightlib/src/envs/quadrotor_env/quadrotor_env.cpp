@@ -254,8 +254,9 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   // - control action penalty
   Scalar act_reward = act_coeff_ * act.cast<Scalar>().norm();
 
-  Scalar total_reward =
-    pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
+  // Scalar total_reward =
+  //   pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
+  Scalar total_reward = pos_reward;
 
   // survival reward
   total_reward += 0.1;
