@@ -20,8 +20,9 @@ class ObstacleAvoidanceAgent():
     self._num_acts = num_acts
     
     # initialization
-    # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-03-21-08-58.zip"
-    weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-06-18-52-12.zip"
+    # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-03-21-08-58.zip" # hover
+    # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-06-18-52-12.zip" #lyfe sucks
+    weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-05-17-08-02.zip" # 25mil
     self._model = PPO.load(weigthts_path)
         
 
