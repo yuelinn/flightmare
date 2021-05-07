@@ -87,9 +87,10 @@ class RandGoalsCallback(BaseCallback):
             new_goal= offset
 
             # check bounds
+            new_goal[2]=np.random.uniform(0.0, 8.0)
             if np.any(new_goal > 14.0) or np.any(new_goal < -14.0) :
                 new_goal[0]= new_goal[0]-10.0
-            new_goal[2]=np.random.uniform(0, 7.0)
+                new_goal[1]= new_goal[1]-10.0
             print("new goal ", new_goal)
 
             self.goal=np.array(new_goal, dtype=np.float32)
