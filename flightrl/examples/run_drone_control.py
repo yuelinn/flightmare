@@ -80,17 +80,16 @@ class RandGoalsCallback(BaseCallback):
             offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
 
             # if it is too close to curr pose
-            while np.any(offset < 1.0):
+            while np.absolute(offset[0]) < 1.0 or np.absolute(offset[1]) < 1.0:
                 # TODO: I could make this more efficient but I dun feel like it...
                 offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
 
-            new_goal= offset
+            # TODO: make goal offset fr curr pos. rmb to check bounds
+            new_goal=offset
 
             # check bounds
-            new_goal[2]=np.random.uniform(0.0, 8.0)
-            if np.any(new_goal > 14.0) or np.any(new_goal < -14.0) :
-                new_goal[0]= new_goal[0]-10.0
-                new_goal[1]= new_goal[1]-10.0
+            new_goal[2]=np.random.uniform(0.1, 8.0)
+
             print("new goal ", new_goal)
 
             self.goal=np.array(new_goal, dtype=np.float32)
