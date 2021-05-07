@@ -201,11 +201,6 @@ bool QuadrotorEnv::set_goal(Ref<Vector<>> goal){
   goal_y=goal(1);
   goal_z=goal(2);
 
-  // goal_x=7.0;
-  // goal_y=7.0;
-  // goal_z=7.0;
-
-  // TODO: check if this actl works or not... why dis no work... sed.
   return true;    
 }
 
