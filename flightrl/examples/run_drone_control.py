@@ -219,10 +219,10 @@ def main():
         rsg_root = os.path.dirname(os.path.abspath(__file__))
         log_dir = rsg_root + '/saved'
         saver = U.ConfigurationSaver(log_dir=log_dir)
-        model = PPO('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
+        # model = PPO('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
 
-        # TODO: fine tuning from hover policy
-        # model=PPO.load("./saved/2021-05-03-20-34-51")
+        model=PPO.load("./saved/2021-05-03-20-34-51.zip") # fine tuning from hover policy
+        model.set_env(env)
 
         # tensorboard
         # Make sure that your chrome browser is already on.
