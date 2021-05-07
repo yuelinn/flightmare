@@ -132,6 +132,7 @@ class RandGoalsCallback(BaseCallback):
         new_obs[0,14]=0.0
         new_obs=new_obs/10.0
         self.locals["new_obs"]=new_obs
+        self.locals["obs_tensor"]=torch.from_numpy(new_obs)
 
         return True
 
