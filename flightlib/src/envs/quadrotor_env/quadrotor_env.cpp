@@ -302,7 +302,7 @@ bool QuadrotorEnv::isTerminalState(Scalar &reward) {
        (quad_state_.x(QS::POSZ)-goal_z) * (quad_state_.x(QS::POSZ)-goal_z)) < 3.0)
   {
     reward = 0.1;
-    std::cout <<  "goal met wt tol 3.0; reseting episode" << std::endl;
+    std::cerr <<  "goal met wt tol 3.0; reseting episode" << std::endl;
     return true;
   }
 
