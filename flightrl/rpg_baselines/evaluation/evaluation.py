@@ -115,6 +115,7 @@ def main():
         # get current goal position 
         drone_pos = obs[0, :3]
         current_goal , _, _ = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))
+        print("current goal ", current_goal)
             
         # Single episode until termination.
         while not (done or (ep_len >= max_ep_length)):
