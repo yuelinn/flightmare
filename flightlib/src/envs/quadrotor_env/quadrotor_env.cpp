@@ -275,21 +275,21 @@ Scalar QuadrotorEnv::stepUnity(Ref<DepthImage<>> img) {
 bool QuadrotorEnv::isTerminalState(Scalar &reward) {
   // Check out of bounds x. 
   if (quad_state_.x(QS::POSX) <= world_box_(0) + 0.5 || quad_state_.x(QS::POSX) >= world_box_(3) - 0.5 ) {
-    reward = 0;
+    reward = -0.1;
     // logger_.warn("x out of bound");
     // logger_.warn("out of bound x " + std::to_string(quad_state_.x(QS::POSX)) + " outside " + "[" + std::to_string(world_box_(0) + 0.5) + ", " + std::to_string(world_box_(3) - 0.5) + "]");
     return true;
   }
   // Check out of bounds y.
   if (quad_state_.x(QS::POSY) <= world_box_(1) + 0.5 || quad_state_.x(QS::POSY) >= world_box_(4) - 0.5 ) {
-    reward = 0;
+    reward = -0.1;
     // logger_.warn("y out of bound");
     // logger_.warn("out of bound y " + std::to_string(quad_state_.x(QS::POSY)) + " outside " + "[" + std::to_string(world_box_(1) + 0.5) + ", " + std::to_string(world_box_(4) - 0.5) + "]");
     return true;
   }
   // Check out of bounds z.
   if (quad_state_.x(QS::POSZ) <= world_box_(2) + 0.5  || quad_state_.x(QS::POSZ) >= world_box_(5) - 0.5 ) {
-    reward = 0;
+    reward = -0.1;
     // logger_.warn("z out of bound");
     // logger_.warn("out of bound z " + std::to_string(quad_state_.x(QS::POSZ)) + " outside " + "[" + std::to_string(world_box_(2) + 0.5) + ", " + std::to_string(world_box_(5) - 0.5) + "]");
     return true;
