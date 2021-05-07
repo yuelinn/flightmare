@@ -2,6 +2,6 @@ env:
   seed: 1
   scene_id: 0  # 0 box environment, 3 natureforest
   num_envs: 1
-  num_threads: 10 
+  num_threads: 1 
   render: no 
   start_rot: [0.0, 0.0, 0.0] 
