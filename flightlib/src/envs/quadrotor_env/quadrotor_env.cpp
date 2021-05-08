@@ -251,7 +251,7 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
 
   // Scalar total_reward =
   //   pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
-  Scalar total_reward = pos_reward;
+  Scalar total_reward = pos_reward + ang_vel_reward;
 
   // survival reward
   total_reward += 0.1;
