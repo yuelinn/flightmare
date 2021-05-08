@@ -142,7 +142,6 @@ class RandGoalsCallback(BaseCallback):
         self.locals["new_obs"]=new_obs
         self.locals["obs_tensor"]=torch.from_numpy(new_obs)
 
-
         return True
 
     def _on_rollout_end(self) -> None:
@@ -209,11 +208,11 @@ def main():
     max_ep_length = env.max_episode_steps
 
     # FIXME: no obstacles for now
-    object_density_fractions = np.zeros([env.num_envs], dtype=np.float32)
-    # if env.num_envs == 1:
-    #     object_density_fractions = np.ones([env.num_envs], dtype=np.float32)
-    # else:
-    #     object_density_fractions = np.linspace(0.0, 1.0, num=env.num_envs)
+    # object_density_fractions = np.zeros([env.num_envs], dtype=np.float32)
+    if env.num_envs == 1:
+        object_density_fractions = np.ones([env.num_envs], dtype=np.float32)
+    else:
+        object_density_fractions = np.linspace(0.0, 1.0, num=env.num_envs)
 
     env.set_objects_densities(object_density_fractions = object_density_fractions)   
     env.reset()
