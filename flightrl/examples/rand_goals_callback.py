@@ -118,6 +118,12 @@ class RandGoalsCallback(BaseCallback):
         new_obs[0,13]=0.0
         new_obs[0,14]=0.0
         new_obs=new_obs/10.0
+
+        # get images
+        img=copy.deepcopy(self.training_env.get_images()) # np arr of shape (1, 128, 128)
+        img=img/255.0
+
+        new_obs=np.expand_dims(np.append(img, new_obs),0)
         self.locals["new_obs"]=new_obs
         self.locals["obs_tensor"]=torch.from_numpy(new_obs)
 
