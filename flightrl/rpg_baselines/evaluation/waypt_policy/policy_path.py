@@ -10,6 +10,7 @@ import numpy as np
 import math
 from typing import List
 from stable_baselines3.ppo.ppo import PPO
+# from stable_baselines3.sac.sac import SAC
 
 class ObstacleAvoidanceAgent():
   def __init__(self, 
@@ -28,6 +29,7 @@ class ObstacleAvoidanceAgent():
     weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-07-13-29-53.zip" # f20d882db6de7df91fe1fbbef58beea6214520b9
     
     self._model = PPO.load(weigthts_path)
+    # self._model = SAC.load(weigthts_path)
         
 
   """
