@@ -17,6 +17,7 @@ from stable_baselines3.common import logger
 
 #
 from stable_baselines3.ppo.ppo import PPO
+from stable_baselines3.sac.sac import SAC
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.callbacks import CheckpointCallback
 
@@ -27,6 +28,7 @@ from scipy.spatial.transform import Rotation
 #
 from flightgym import QuadrotorEnv_v1
 
+from Cat_policy import CustomCatNN
 
 class RandGoalsCallback(BaseCallback):
     """
@@ -131,8 +133,15 @@ class RandGoalsCallback(BaseCallback):
         new_obs[0,13]=0.0
         new_obs[0,14]=0.0
         new_obs=new_obs/10.0
+
+        # get images
+        img=copy.deepcopy(self.training_env.get_images()) # np arr of shape (1, 128, 128)
+        img=img/255.0
+
+        new_obs=np.expand_dims(np.append(img, new_obs),0)
         self.locals["new_obs"]=new_obs
         self.locals["obs_tensor"]=torch.from_numpy(new_obs)
+
 
         return True
 
@@ -219,10 +228,22 @@ def main():
         rsg_root = os.path.dirname(os.path.abspath(__file__))
         log_dir = rsg_root + '/saved'
         saver = U.ConfigurationSaver(log_dir=log_dir)
-        # model = PPO('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
 
-        model=PPO.load("./saved/2021-05-03-20-34-51.zip") # fine tuning from hover policy
+        # policy_kwargs = dict(
+        #     features_extractor_class=CustomCNN,
+        #     features_extractor_kwargs=dict(features_dim=128),
+        # )
+        # model = PPO("CnnPolicy", "BreakoutNoFrameskip-v4", policy_kwargs=policy_kwargs, verbose=1)
+        # model.learn(1000)
+
+        # model = PPO('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
+        # model=PPO.load("./saved/2021-05-03-20-34-51.zip") # fine tuning from hover policy
+        # model.set_env(env)
+
+        # model = SAC('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
+        model=SAC.load("./saved/2021-05-08-08-26-02/weights/w_time__100000_steps.zip")
         model.set_env(env)
+        
 
         # tensorboard
         # Make sure that your chrome browser is already on.
