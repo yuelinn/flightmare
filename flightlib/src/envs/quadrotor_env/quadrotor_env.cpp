@@ -251,7 +251,7 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
 
   // Scalar total_reward =
   //   pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
-  Scalar total_reward = pos_reward;
+  Scalar total_reward = pos_reward + ang_vel_reward;
 
   // survival reward
   total_reward += 0.1;
@@ -297,14 +297,14 @@ bool QuadrotorEnv::isTerminalState(Scalar &reward) {
 
   // if near goal, end episode
   // FIXME: might be a problem when running in inference time
-  if (sqrt((quad_state_.x(QS::POSX)-goal_x) * (quad_state_.x(QS::POSX)-goal_x) + 
-       (quad_state_.x(QS::POSY)-goal_y) * (quad_state_.x(QS::POSY)-goal_y) + 
-       (quad_state_.x(QS::POSZ)-goal_z) * (quad_state_.x(QS::POSZ)-goal_z)) < 3.0)
-  {
-    reward = 0.1;
-    std::cerr <<  "goal met wt tol 3.0; reseting episode" << std::endl;
-    return true;
-  }
+  // if (sqrt((quad_state_.x(QS::POSX)-goal_x) * (quad_state_.x(QS::POSX)-goal_x) + 
+  //      (quad_state_.x(QS::POSY)-goal_y) * (quad_state_.x(QS::POSY)-goal_y) + 
+  //      (quad_state_.x(QS::POSZ)-goal_z) * (quad_state_.x(QS::POSZ)-goal_z)) < 3.0)
+  // {
+  //   reward = 0.1;
+  //   std::cerr <<  "goal met wt tol 3.0; reseting episode" << std::endl;
+  //   return true;
+  // }
 
   return false;
 }

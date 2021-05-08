@@ -18,7 +18,10 @@ from stable_baselines3.common import logger
 #
 from stable_baselines3.ppo.ppo import PPO
 from stable_baselines3.sac.sac import SAC
+<<<<<<< HEAD
 from stable_baselines3.common.callbacks import BaseCallback
+=======
+>>>>>>> linn
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 from rpg_baselines.ppo.ppo2_test import test_model
@@ -28,6 +31,7 @@ from scipy.spatial.transform import Rotation
 #
 from flightgym import QuadrotorEnv_v1
 
+<<<<<<< HEAD
 from Cat_policy import CustomCatNN
 
 class RandGoalsCallback(BaseCallback):
@@ -158,6 +162,9 @@ class RandGoalsCallback(BaseCallback):
 
 
 
+=======
+from rand_goals_callback import RandGoalsCallback
+>>>>>>> linn
 
 def configure_random_seed(seed, env=None):
     if env is not None:
@@ -227,6 +234,7 @@ def main():
         rsg_root = os.path.dirname(os.path.abspath(__file__))
         log_dir = rsg_root + '/saved'
         saver = U.ConfigurationSaver(log_dir=log_dir)
+<<<<<<< HEAD
 
         # policy_kwargs = dict(
         #     features_extractor_class=CustomCNN,
@@ -241,8 +249,19 @@ def main():
 
         # model = SAC('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
         model=SAC.load("./saved/2021-05-08-08-26-02/weights/w_time__100000_steps.zip")
+=======
+
+        # SAC version
+        # model = SAC('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
+        model=SAC.load("./saved/2021-05-08-12-12-16/weights/w_time__180000_steps.zip") # fine tuning from hover policy
+>>>>>>> linn
         model.set_env(env)
         
+
+        # PPO version
+        # model = PPO('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
+        # model=PPO.load("./saved/2021-05-03-20-34-51.zip") # fine tuning from hover policy
+        # model.set_env(env)
 
         # tensorboard
         # Make sure that your chrome browser is already on.
@@ -255,7 +274,7 @@ def main():
         # 2000000000 is 4000 iterations.
         logger.configure(folder=saver.data_dir)
         # Save a checkpoint every 1000 steps
-        checkpoint_callback = CheckpointCallback(save_freq=100000, save_path=saver.data_dir+'/weights/', name_prefix='w_time_')
+        checkpoint_callback = CheckpointCallback(save_freq=10000, save_path=saver.data_dir+'/weights/', name_prefix='w_time_')
         # TODO: make callback that saves only if the returns have improved
 
         randgoalscallback=RandGoalsCallback()
