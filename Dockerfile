@@ -33,7 +33,7 @@ RUN pip3 install jupyter
 
 WORKDIR "/root"
 
-RUN git clone -b linn https://github.com/yuelinn/flightmare.git 
+RUN git clone -b may10 https://github.com/yuelinn/flightmare.git 
 
 RUN echo "export FLIGHTMARE_PATH=/root/flightmare" >> /root/.bashrc
 RUN  pip3 install scikit-build==0.11.1
@@ -48,3 +48,4 @@ RUN pip3 install .
 RUN pip3 install tensorflow-gpu==1.14
 
 WORKDIR "/root"
+ENV POLICY_PATH /root/flightmare/flightrl/rpg_baselines/evaluation/waypt_policy
