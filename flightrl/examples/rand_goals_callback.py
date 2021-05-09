@@ -64,7 +64,7 @@ class RandGoalsCallback(BaseCallback):
         """
 
         self.rollout_id +=1
-        if self.rollout_id % 300 ==0 :
+        if self.rollout_id % 300 ==0 : # FIXME: check wy SAC keeps calling this at every episode
             print("300 rollouts, new goal")
 
             offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))

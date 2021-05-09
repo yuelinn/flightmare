@@ -100,19 +100,20 @@ def main():
         log_dir = rsg_root + '/saved'
         saver = U.ConfigurationSaver(log_dir=log_dir)
 
-        # policy_kwargs = dict(
-        #     features_extractor_class=CustomCNN,
-        #     features_extractor_kwargs=dict(features_dim=128),
-        # )
+        policy_kwargs = dict(
+            features_extractor_class=CustomCNN,
+            features_extractor_kwargs=dict(features_dim=128),
+        )
         # model = PPO("CnnPolicy", "BreakoutNoFrameskip-v4", policy_kwargs=policy_kwargs, verbose=1)
         # model.learn(1000)
 
-        # model = PPO('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
+        # model = PPO('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir, policy_kwargs=policy_kwargs)
         # model=PPO.load("./saved/2021-05-03-20-34-51.zip") # fine tuning from hover policy
         # model.set_env(env)
 
         # SAC version
-        model = SAC('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
+        model = SAC('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir, policy_kwargs=policy_kwargs)
+        # TODO: test loading of custom feature extractors
         # model=SAC.load("./saved/2021-05-08-12-12-16/weights/w_time__180000_steps.zip") # fine tuning from hover policy
         # model.set_env(env)
         
@@ -144,6 +145,8 @@ def main():
 
     # # Testing mode with a trained weight
     else:
+        # FIXME
+        print("WARNING: this part of the code is untested! Use the eval script instead!!")
         model = PPO.load(args.weight)
         test_model(env, model, render=args.render)
 
