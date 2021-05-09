@@ -26,7 +26,8 @@ class ObstacleAvoidanceAgent():
     # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-05-17-08-02.zip" # 25mil
     # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-07-15-49-30.zip" # 292805d
     # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-07-18-34-52/weights/w_time__3400000_steps.zip" # 25mil+3mil
-    weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-07-13-29-53.zip" # f20d882db6de7df91fe1fbbef58beea6214520b9
+    # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-07-13-29-53.zip" # f20d882db6de7df91fe1fbbef58beea6214520b9
+    weigthts_path="/root/flightmare/flightrl/examples/saved/w_time__3400000_steps.zip" # f20d882db6de7df91fe1fbbef58beea6214520b9
     
     self._model = PPO.load(weigthts_path)
     # self._model = SAC.load(weigthts_path)
