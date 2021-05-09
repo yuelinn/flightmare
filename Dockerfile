@@ -48,3 +48,4 @@ RUN pip3 install .
 RUN pip3 install tensorflow-gpu==1.14
 
 WORKDIR "/root"
+ENV POLICY_PATH /root/flightmare/flightrl/rpg_baselines/evaluation/waypt_policy
