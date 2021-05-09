@@ -18,8 +18,7 @@ To run our submission, please  follow the instructions below:
   `./STANDALONE_PATH/RPG_Flightmare.x86_64 -static-obstacles 0`
 4. To evaluate our submission, run within the docker:    
    `cd $FLIGHTMARE_PATH/flightrl/rpg_baselines/evaluation`   
-   `python3 evaluation.py --policy_path $POLICY_PATH`   
-   As of May 8 2044h GMT+8, POLICY_PATH=/root/flightmare/flightrl/rpg_baselines/evaluation/waypt_policy
+   `python3 evaluation.py --policy_path /root/flightmare/flightrl/rpg_baselines/evaluation/waypt_policy`   
 
 
 ## Publication
