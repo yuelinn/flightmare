@@ -100,13 +100,13 @@ def main():
 
         # SAC version
         # model = SAC('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
-        model=SAC.load("./saved/2021-05-08-12-12-16/weights/w_time__180000_steps.zip") # fine tuning from hover policy
-        model.set_env(env)
+        #model=SAC.load("./saved/2021-05-10-15-47-24.zip") # fine tuning fr 6mil
+        #model.set_env(env)
 
         # PPO version
         # model = PPO('MlpPolicy', env, verbose=2, tensorboard_log=saver.data_dir)
-        # model=PPO.load("./saved/2021-05-03-20-34-51.zip") # fine tuning from hover policy
-        # model.set_env(env)
+        model=PPO.load("./saved/2021-05-03-21-08-58.zip") # fine tuning from hover policy
+        model.set_env(env)
 
         # tensorboard
         # Make sure that your chrome browser is already on.
@@ -125,7 +125,7 @@ def main():
         randgoalscallback=RandGoalsCallback()
 
         model.learn(
-            total_timesteps=int(3000000), callback=[randgoalscallback, checkpoint_callback], tb_log_name="test")
+            total_timesteps=int(6000000), callback=[randgoalscallback, checkpoint_callback], tb_log_name="test")
         model.save(saver.data_dir)
 
     # # Testing mode with a trained weight

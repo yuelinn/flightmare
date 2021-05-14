@@ -66,9 +66,11 @@ class RandGoalsCallback(BaseCallback):
         """
 
         self.rollout_id +=1
-        if self.rollout_id % 300 ==0 :
+        #if self.rollout_id % 300 ==0 :
+        if True:
             print("300 rollouts, new goal")
 
+            """
             offset=np.random.uniform(self.waypt_gap_m*-1, self.waypt_gap_m, size=(3))
 
             # if it is too close to curr pose
@@ -78,8 +80,9 @@ class RandGoalsCallback(BaseCallback):
 
             # TODO: make goal offset fr curr pos. rmb to check bounds
             new_goal=offset
+            """
 
-            # check bounds
+            new_goal=np.zeros((3))
             new_goal[2]=np.random.uniform(0.1, 8.0)
 
             print("new goal ", new_goal)
