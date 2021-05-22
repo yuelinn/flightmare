@@ -5,6 +5,7 @@
 
 // std
 #include <memory>
+#include <random>
 
 // openmp
 #include <omp.h>
@@ -28,6 +29,7 @@ class VecEnv {
 
   // Linn stuff
   bool set_goal(Ref<MatrixRowMajor<>> goal);
+  bool set_resetpos(Ref<MatrixRowMajor<>> goal);
 
   // - public OpenAI-gym style functions for vectorized environment
   bool reset(Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img);

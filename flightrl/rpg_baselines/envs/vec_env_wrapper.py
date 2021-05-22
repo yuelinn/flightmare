@@ -40,6 +40,11 @@ class FlightEnvVec(VecEnv):
         # print("vec env wrapper: setting new goal: ", goal)
         self.wrapper.set_goal(goal)
         return True
+
+    def set_resetpos(self, goal):
+        # print("vec env wrapper: setting new goal: ", goal)
+        self.wrapper.set_resetpos(goal)
+        return True
         
     def set_objects_densities(self, object_density_fractions):
         if(self.render):

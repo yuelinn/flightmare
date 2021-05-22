@@ -64,7 +64,14 @@ void VecEnv<EnvBase>::init(void) {
     // Last terms are to center the positions around zero.
     drone_start_position(0) = spacing_between_drones_columns*(ceil(vehicle_index/dim_columns)); 
     drone_start_position(1) = spacing_between_drones_rows*(vehicle_index%dim_columns);
-    drone_start_position(2) = 4.0;
+    // drone_start_position(2) = 4.0;
+    // Linn: hack random spawn height here
+    int rand;
+    std::default_random_engine generator;
+    std::uniform_int_distribution<> distrib(4, 6);
+    rand = distrib(generator);
+    drone_start_position(2) = float(rand);
+    std::cout << "starting pos" << drone_start_position << std::endl;
     envs_[vehicle_index]->setResetPose(drone_start_position, start_ori);
   }
 
@@ -95,6 +102,25 @@ bool VecEnv<EnvBase>::set_goal(Ref<MatrixRowMajor<>> goal){
   bool is_linn_set;
   is_linn_set=envs_[0]->set_goal(goal.row(0));
   return is_linn_set;    
+}
+
+
+template<typename EnvBase>
+bool VecEnv<EnvBase>::set_resetpos(Ref<MatrixRowMajor<>> goal){
+
+  std::vector<float> start_rot = (cfg_["env"]["start_rot"]).as<std::vector<float>>();
+  Vector<3> start_ori = Vector<3>(start_rot.data());
+
+  // std::cout <<  "env base template: reseting goal state to " << goal << std::endl;
+  // bool is_linn_set;
+  Vector<3> drone_start_position;
+  drone_start_position(0) = goal.row(0)(0); 
+  drone_start_position(1) = goal.row(0)(1);
+  drone_start_position(2) = goal.row(0)(2);
+  std::cout << "starting pos" << drone_start_position << std::endl;
+  //FIXME wont work for multiple drones
+  envs_[0]->setResetPose(drone_start_position, start_ori);
+  return true;    
 }
 
 

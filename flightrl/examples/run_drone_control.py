@@ -125,6 +125,7 @@ def main():
         randgoalscallback=RandGoalsCallback()
 
         model.learn(
+            # total_timesteps=int(6000000), callback=[checkpoint_callback], tb_log_name="test")
             total_timesteps=int(6000000), callback=[randgoalscallback, checkpoint_callback], tb_log_name="test")
         model.save(saver.data_dir)
 

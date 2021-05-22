@@ -69,7 +69,7 @@ QuadrotorEnv::~QuadrotorEnv() {}
 //----      Drone reset       ----//
 //--------------------------------//
 
-
+// reset start to resetPosition and set goal there. reset out of bounds to center around resetPosition
 void QuadrotorEnv::setResetPose(Vector<3> &resetPosition, Vector<3> &resetRotation) {
   resetPosition_ = resetPosition;
   resetRotation_ = resetRotation;
@@ -78,9 +78,13 @@ void QuadrotorEnv::setResetPose(Vector<3> &resetPosition, Vector<3> &resetRotati
   int goalDistance = 35; // linn: wtf is this for??
 
   // Adjust goal position accordingly.
-  goal_state_(0) = resetPosition(0);
-  goal_state_(1) = resetPosition(1); 
-  goal_state_(2) = resetPosition(2);
+  // goal_state_(0) = resetPosition(0);
+  // goal_state_(1) = resetPosition(1); 
+  // goal_state_(2) = resetPosition(2);
+
+  goal_state_(0)=goal_x;
+  goal_state_(1)=goal_y;
+  goal_state_(2)=goal_z;
 
   // Euler angles
   goal_state_(3) = 0;
@@ -275,21 +279,21 @@ Scalar QuadrotorEnv::stepUnity(Ref<DepthImage<>> img) {
 bool QuadrotorEnv::isTerminalState(Scalar &reward) {
   // Check out of bounds x. 
   if (quad_state_.x(QS::POSX) <= world_box_(0) + 0.5 || quad_state_.x(QS::POSX) >= world_box_(3) - 0.5 ) {
-    reward = -0.1;
+    reward = 0.;
     // logger_.warn("x out of bound");
     // logger_.warn("out of bound x " + std::to_string(quad_state_.x(QS::POSX)) + " outside " + "[" + std::to_string(world_box_(0) + 0.5) + ", " + std::to_string(world_box_(3) - 0.5) + "]");
     return true;
   }
   // Check out of bounds y.
   if (quad_state_.x(QS::POSY) <= world_box_(1) + 0.5 || quad_state_.x(QS::POSY) >= world_box_(4) - 0.5 ) {
-    reward = -0.1;
+    reward = 0.;
     // logger_.warn("y out of bound");
     // logger_.warn("out of bound y " + std::to_string(quad_state_.x(QS::POSY)) + " outside " + "[" + std::to_string(world_box_(1) + 0.5) + ", " + std::to_string(world_box_(4) - 0.5) + "]");
     return true;
   }
   // Check out of bounds z.
   if (quad_state_.x(QS::POSZ) <= world_box_(2) + 0.5  || quad_state_.x(QS::POSZ) >= world_box_(5) - 0.5 ) {
-    reward = -0.1;
+    reward = 0.;
     // logger_.warn("z out of bound");
     // logger_.warn("out of bound z " + std::to_string(quad_state_.x(QS::POSZ)) + " outside " + "[" + std::to_string(world_box_(2) + 0.5) + ", " + std::to_string(world_box_(5) - 0.5) + "]");
     return true;

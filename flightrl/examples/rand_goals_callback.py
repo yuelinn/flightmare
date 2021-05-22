@@ -83,13 +83,17 @@ class RandGoalsCallback(BaseCallback):
             """
 
             new_goal=np.zeros((3))
-            new_goal[2]=np.random.uniform(0.1, 8.0)
+            new_goal[2]=5.0
 
             print("new goal ", new_goal)
     
             self.goal=np.array(new_goal, dtype=np.float32)
             self.training_env.set_goal(self.goal)
             self.is_reached_goal=False
+
+            new_start=np.zeros((3))
+            new_start[2]=np.random.uniform(4.0, 6.0)
+            self.training_env.set_resetpos(np.array(new_start, dtype=np.float32))
 
     def _on_step(self) -> bool:
         """
@@ -105,7 +109,7 @@ class RandGoalsCallback(BaseCallback):
         
         obs_tensor=(self.locals["new_obs"])
         # obs_tensor=(self.locals["obs_tensor"]).numpy()
-        print("obs: ", self.locals["new_obs"])
+        # print("obs: ", self.locals["new_obs"])
 
         # check if near goal
         pos=obs_tensor[0,:3]
