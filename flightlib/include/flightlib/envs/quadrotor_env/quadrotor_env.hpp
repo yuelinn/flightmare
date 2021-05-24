@@ -17,6 +17,9 @@
 #include "flightlib/common/types.hpp"
 #include "flightlib/envs/env_base.hpp"
 #include "flightlib/objects/quadrotor.hpp"
+#include "flightlib/objects/static_gate.hpp"
+// #include "flightlib/objects/static_object.hpp"
+
 #include <opencv2/core/eigen.hpp>
 
 namespace flightlib {

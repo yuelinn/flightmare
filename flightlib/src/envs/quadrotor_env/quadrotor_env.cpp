@@ -254,7 +254,7 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   Scalar act_reward = act_coeff_ * act.cast<Scalar>().norm();
 
   // Scalar total_reward =
-  //   pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
+    // pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
   Scalar total_reward = pos_reward + ang_vel_reward;
 
   // survival reward
@@ -371,6 +371,13 @@ bool QuadrotorEnv::getAct(Command *const cmd) const {
 
 void QuadrotorEnv::addObjectsToUnity(std::shared_ptr<UnityBridge> bridge) {
   bridge->addQuadrotor(quadrotor_ptr_);
+
+  // FIXME add obj for testing purposes
+  std::string object_id = "SphereObstacle";
+  std::string prefab_id = "CoverF";
+  std::shared_ptr<StaticGate> obj = std::make_shared<StaticGate>(object_id, prefab_id);
+  obj->setPosition(Eigen::Vector3f(1.176, 0, 4.0));
+  bridge->addStaticObject(obj);
 }
 
 std::ostream &operator<<(std::ostream &os, const QuadrotorEnv &quad_env) {
