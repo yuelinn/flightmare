@@ -7,17 +7,24 @@
 
 # builtin 
 import copy
+import pdb
+import math
 
 # third-party
 import numpy as np
 import torch 
+import cv2
+
+from stable_baselines3.common.callbacks import BaseCallback
+from scipy.spatial.transform import Rotation 
+
 
 # own mods
 
 __author__ = "Linn of the Ded"
 __status__ = "Production"
 
-from stable_baselines3.common.callbacks import BaseCallback
+
 
 
 class RandGoalsCallback(BaseCallback):
@@ -51,6 +58,24 @@ class RandGoalsCallback(BaseCallback):
         self.goal=np.array([5.0, 5.0, 5.0], dtype=np.float32)
         self.is_reached_goal=False # TODO: this is not used but is set correctly
         self.rollout_id=0
+        self.count_ts =0
+
+        # TODO check if cfg file is used correctly, move to init just once
+        cam_inQ_pos=np.array([0.176, 0.0, 0.05])
+        cam_inQ_euler_rot=np.array( [-90.0, 0.0, 5.0]) #yaw pitch roll (ZYX)
+        cam_inQ_mat_rot = Rotation.from_euler('zyx', cam_inQ_euler_rot, degrees=True)
+        # hetero
+        cam_inQ_het =  cam_inQ_mat_rot.as_matrix()
+        cam_inQ_het=np.append(cam_inQ_het, np.array([[0,0,0]]), axis=0)
+        self.cam_inQ_het=np.append(cam_inQ_het.T, np.array([np.append(cam_inQ_pos,[1.0])]), axis=0).T
+
+        # FOV of quad TODO: check if these r correct cuz i just cp paste fr the c source files n idk if they r the final ones
+        self.frame_height = 128
+        self.frame_width = 128
+        self.camera_FOV = 90
+
+        self.focal_len = (self.frame_height / 2.0) * math.tan(math.pi*self.camera_FOV/(180.*2.))
+
 
     def _on_training_start(self) -> None:
         """
@@ -83,7 +108,9 @@ class RandGoalsCallback(BaseCallback):
             """
 
             new_goal=np.zeros((3))
-            new_goal[2]=5.0
+            new_goal[0]=1.176
+            new_goal[1]=0.0
+            new_goal[2]=4.0
 
             print("new goal ", new_goal)
     
@@ -92,8 +119,39 @@ class RandGoalsCallback(BaseCallback):
             self.is_reached_goal=False
 
             new_start=np.zeros((3))
-            new_start[2]=np.random.uniform(4.0, 6.0)
+            # new_start[2]=np.random.uniform(4.0, 6.0)
+            new_start[2]=4.0
             self.training_env.set_resetpos(np.array(new_start, dtype=np.float32))
+
+
+    def is_in_fov(self, quad_inW_pos, quad_inW_euler_rot,  goal_inW_pos):
+        # camera intrinsics
+        quad_inW_mat_rot = Rotation.from_euler('zyx', quad_inW_euler_rot, degrees=True)
+        #hetero TODO make into fn u lazy a**
+        quad_inW_het=quad_inW_mat_rot.as_matrix()
+        quad_inW_het=np.append(quad_inW_het, np.array([[0,0,0]]), axis=0)
+        quad_inW_het=np.append(quad_inW_het.T, np.array([np.append(quad_inW_pos,[1.0])]), axis=0).T
+
+        # transform. darn i rly should hav just found a lib for dis bt i was too lazy
+        cam_inW_het = np.matmul(quad_inW_het, self.cam_inQ_het)
+
+        cam_inW_mat_rot=cam_inW_het[0:3,0:3]
+
+        goal_inC_pos = np.matmul(cam_inW_mat_rot.T, goal_inW_pos) - np.matmul(cam_inW_mat_rot.T, cam_inW_het[:3,-1])
+
+        goal_inC_theta_xy=math.atan(goal_inC_pos[0]/goal_inC_pos[1]) # radians
+        goal_inC_theta_yz=math.atan(goal_inC_pos[2]/goal_inC_pos[1]) # radians
+
+        is_fov= abs(goal_inC_theta_xy) > (math.pi*self.camera_FOV/(180.*2.)) or abs(goal_inC_theta_yz) > (math.pi*self.camera_FOV/(180.*2.))
+        is_fov = not is_fov
+
+        print("goal pos in W: ", goal_inW_pos)
+        print("goal pos in C: ", goal_inC_pos)
+        print("cam in W: ", cam_inW_het)
+        print("counter", self.count_ts)
+
+        return is_fov, goal_inC_theta_xy, goal_inC_theta_yz, goal_inC_pos
+
 
     def _on_step(self) -> bool:
         """
@@ -106,6 +164,27 @@ class RandGoalsCallback(BaseCallback):
         # print("global keys", self.globals.keys())
         # print("local keys", self.locals.keys())
 
+        quad_inW_pos=self.locals["new_obs"][0,:3]
+        quad_inW_euler_rot=self.locals["new_obs"][0,3:6] # yaw pitch roll cuz the ori authors are a sadistic bunch
+        goal_inW_pos=(self.locals["new_obs"])[0,12:]
+
+        is_fov, goal_inC_theta_xy, goal_inC_theta_yz, goal_inC_pos= self.is_in_fov(quad_inW_pos, quad_inW_euler_rot,  goal_inW_pos)
+
+        # extract images
+        img=self.training_env.get_images()
+
+        # FIXME move to DBG only: paint dot on image to test goal pos
+        if is_fov:
+            row = self.focal_len * goal_inC_pos[0] / goal_inC_pos[1]
+            row = int(row + (128/2))
+            col = self.focal_len * goal_inC_pos[2] / goal_inC_pos[1]
+            col = int(col + (128/2))
+            # pdb.set_trace()
+            img[0,row,col]=254.
+            cv2.imwrite("./test_imgs/test"+str(self.count_ts)+".png", img[0])
+        else:
+            print("goal not in fov")
+        self.count_ts +=1
         
         obs_tensor=(self.locals["new_obs"])
         # obs_tensor=(self.locals["obs_tensor"]).numpy()
@@ -126,7 +205,7 @@ class RandGoalsCallback(BaseCallback):
         new_obs[0,12]=0.0
         new_obs[0,13]=0.0
         new_obs[0,14]=0.0
-        new_obs=new_obs/10.0
+        # new_obs=new_obs/10.0
         self.locals["new_obs"]=new_obs
         self.locals["obs_tensor"]=torch.from_numpy(new_obs)
 
