@@ -62,6 +62,7 @@ class RandGoalsCallback(BaseCallback):
 
         # TODO check if cfg file is used correctly, move to init just once
         cam_inQ_pos=np.array([0.176, 0.0, 0.05])
+        # cam_inQ_euler_rot=np.array( [-90.0, 0.0, 0.0]) #yaw pitch roll (ZYX)
         cam_inQ_euler_rot=np.array( [-90.0, 0.0, 5.0]) #yaw pitch roll (ZYX)
         cam_inQ_mat_rot = Rotation.from_euler('zyx', cam_inQ_euler_rot, degrees=True)
         # hetero
@@ -74,8 +75,21 @@ class RandGoalsCallback(BaseCallback):
         self.frame_width = 128
         self.camera_FOV = 90
 
-        self.focal_len = (self.frame_height / 2.0) * math.tan(math.pi*self.camera_FOV/(180.*2.))
+        self.focal_len = (self.frame_height / 2.0) / math.tan(math.pi*self.camera_FOV/(180.*2.))
+        # self.focal_len = (self.frame_height / 2.0) * math.tan(math.pi*self.camera_FOV/(180.*2.))
 
+    def is_goal_collide(self, img, goal_inC_pos, px_tol=10, depth_tol=200):
+        is_collide=False
+        row = self.focal_len * goal_inC_pos[0] / goal_inC_pos[1]
+        row = int(row + (self.frame_height/2))
+        col = self.focal_len * goal_inC_pos[2] / goal_inC_pos[1]
+        col = int(col + (self.frame_width/2))
+
+        for i in range(-px_tol/2, px_tol/2, 1):
+            for j in range(-px_tol/2, px_tol/2, 1):
+                if img[row+i, col+j] > depth_tol:
+                    is_collide=True
+        return is_collide
 
     def _on_training_start(self) -> None:
         """
@@ -108,8 +122,8 @@ class RandGoalsCallback(BaseCallback):
             """
 
             new_goal=np.zeros((3))
-            new_goal[0]=1.176
-            new_goal[1]=0.0
+            new_goal[0]=10.176
+            new_goal[1]=1.0
             new_goal[2]=4.0
 
             print("new goal ", new_goal)
@@ -126,11 +140,12 @@ class RandGoalsCallback(BaseCallback):
 
     def is_in_fov(self, quad_inW_pos, quad_inW_euler_rot,  goal_inW_pos):
         # camera intrinsics
-        quad_inW_mat_rot = Rotation.from_euler('zyx', quad_inW_euler_rot, degrees=True)
+        quad_inW_mat_rot = Rotation.from_euler('zyx', quad_inW_euler_rot, degrees=False)
         #hetero TODO make into fn u lazy a**
         quad_inW_het=quad_inW_mat_rot.as_matrix()
         quad_inW_het=np.append(quad_inW_het, np.array([[0,0,0]]), axis=0)
         quad_inW_het=np.append(quad_inW_het.T, np.array([np.append(quad_inW_pos,[1.0])]), axis=0).T
+        print("quad_inW_het", quad_inW_het)
 
         # transform. darn i rly should hav just found a lib for dis bt i was too lazy
         cam_inW_het = np.matmul(quad_inW_het, self.cam_inQ_het)
@@ -145,10 +160,13 @@ class RandGoalsCallback(BaseCallback):
         is_fov= abs(goal_inC_theta_xy) > (math.pi*self.camera_FOV/(180.*2.)) or abs(goal_inC_theta_yz) > (math.pi*self.camera_FOV/(180.*2.))
         is_fov = not is_fov
 
+        # Linn going cray wt the prints 
+        print("counter", self.count_ts)
         print("goal pos in W: ", goal_inW_pos)
         print("goal pos in C: ", goal_inC_pos)
         print("cam in W: ", cam_inW_het)
-        print("counter", self.count_ts)
+        print("goal_inC_theta_xy: ", goal_inC_theta_xy)
+        print("goal_inC_theta_yz: ", goal_inC_theta_yz)
 
         return is_fov, goal_inC_theta_xy, goal_inC_theta_yz, goal_inC_pos
 
@@ -166,29 +184,40 @@ class RandGoalsCallback(BaseCallback):
 
         quad_inW_pos=self.locals["new_obs"][0,:3]
         quad_inW_euler_rot=self.locals["new_obs"][0,3:6] # yaw pitch roll cuz the ori authors are a sadistic bunch
+        print("quad ypr: ", quad_inW_euler_rot*180./np.pi)
         goal_inW_pos=(self.locals["new_obs"])[0,12:]
 
-        is_fov, goal_inC_theta_xy, goal_inC_theta_yz, goal_inC_pos= self.is_in_fov(quad_inW_pos, quad_inW_euler_rot,  goal_inW_pos)
+        is_fov, goal_inC_theta_xy, goal_inC_theta_yz, goal_inC_pos= self.is_in_fov(quad_inW_pos, quad_inW_euler_rot, goal_inW_pos)
+
+        # # #FIXME DBG
+        # goal_inC_pos[0]=1.0
+        # goal_inC_pos[1]=2.0
+        # goal_inC_pos[2]=-1.0
 
         # extract images
         img=self.training_env.get_images()
 
         # FIXME move to DBG only: paint dot on image to test goal pos
         if is_fov:
-            row = self.focal_len * goal_inC_pos[0] / goal_inC_pos[1]
-            row = int(row + (128/2))
-            col = self.focal_len * goal_inC_pos[2] / goal_inC_pos[1]
-            col = int(col + (128/2))
+            col = self.focal_len * goal_inC_pos[0] / goal_inC_pos[1]
+            col = int(col + (self.frame_height/2))
+            row = self.focal_len * goal_inC_pos[2] / goal_inC_pos[1]
+            row = int((self.frame_width/2)-row)
             # pdb.set_trace()
             img[0,row,col]=254.
+            print("row: ", row)
+            print("col: ", col)
             cv2.imwrite("./test_imgs/test"+str(self.count_ts)+".png", img[0])
         else:
-            print("goal not in fov")
+            print("goal not in fov!")
+            print("goal not in fov!!")
+            print("goal not in fov!!!")
+            print("goal not in fov!!!!")
         self.count_ts +=1
         
         obs_tensor=(self.locals["new_obs"])
         # obs_tensor=(self.locals["obs_tensor"]).numpy()
-        # print("obs: ", self.locals["new_obs"])
+        print("obs: ", self.locals["new_obs"])
 
         # check if near goal
         pos=obs_tensor[0,:3]
