@@ -78,13 +78,13 @@ void QuadrotorEnv::setResetPose(Vector<3> &resetPosition, Vector<3> &resetRotati
   int goalDistance = 35; // linn: wtf is this for??
 
   // Adjust goal position accordingly.
-  // goal_state_(0) = resetPosition(0);
-  // goal_state_(1) = resetPosition(1); 
-  // goal_state_(2) = resetPosition(2);
+  goal_state_(0) = resetPosition(0);
+  goal_state_(1) = resetPosition(1); 
+  goal_state_(2) = resetPosition(2);
 
-  goal_state_(0)=goal_x;
-  goal_state_(1)=goal_y;
-  goal_state_(2)=goal_z;
+  // goal_state_(0)=goal_x;
+  // goal_state_(1)=goal_y;
+  // goal_state_(2)=goal_z;
 
   // Euler angles
   goal_state_(3) = 0;
@@ -217,12 +217,12 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   quadrotor_ptr_->run(cmd_, sim_dt_);
 
   // update observations
-  goal_state_(0) = goal_x;
-  goal_state_(1) =  goal_y;
-  goal_state_(2) = goal_z;
-  goal_state_(12) = goal_x;
-  goal_state_(13) =  goal_y;
-  goal_state_(14) = goal_z;
+  // goal_state_(0) = goal_x;
+  // goal_state_(1) =  goal_y;
+  // goal_state_(2) = goal_z;
+  // goal_state_(12) = goal_x;
+  // goal_state_(13) =  goal_y;
+  // goal_state_(14) = goal_z;
   getObs(obs);
 
   Matrix<3, 3> rot = quad_state_.q().toRotationMatrix();
@@ -253,9 +253,9 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   // - control action penalty
   Scalar act_reward = act_coeff_ * act.cast<Scalar>().norm();
 
-  // Scalar total_reward =
-    // pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
-  Scalar total_reward = pos_reward + ang_vel_reward;
+  Scalar total_reward =
+    pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
+  // Scalar total_reward = pos_reward + ang_vel_reward;
 
   // survival reward
   total_reward += 0.1;
@@ -373,11 +373,11 @@ void QuadrotorEnv::addObjectsToUnity(std::shared_ptr<UnityBridge> bridge) {
   bridge->addQuadrotor(quadrotor_ptr_);
 
   // FIXME add obj for testing purposes
-  std::string object_id = "SphereObstacle";
-  std::string prefab_id = "CoverF";
+  std::string object_id = "cube";
+  std::string prefab_id = "Transparen_Cube";
   std::shared_ptr<StaticGate> obj = std::make_shared<StaticGate>(object_id, prefab_id);
-  obj->setPosition(Eigen::Vector3f(1.176, 0, 4.0));
-  bridge->addStaticObject(obj);
+  obj->setPosition(Eigen::Vector3f(10.176, 1.0, 4.0));
+  // bridge->addStaticObject(obj);
 }
 
 std::ostream &operator<<(std::ostream &os, const QuadrotorEnv &quad_env) {
