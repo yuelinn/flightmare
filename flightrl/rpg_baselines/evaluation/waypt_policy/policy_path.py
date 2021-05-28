@@ -74,12 +74,17 @@ class ObstacleAvoidanceAgent():
     # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-08-17-44-39.zip" # 40mil
     # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-14-15-39-06.zip" # hover 0,0,x no term
     # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-15-18-34-06.zip" # hover 0,0,x no term
-    # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-26-20-31-42/weights/w_time__5810000_steps.zip" # idgaf
+    # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-26-19-35-40.zip" # idgaf
     self._model = PPO.load(weigthts_path)
 
     self.callback_obj=RandGoalsCallback()
     # weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-10-15-47-24.zip" # SAC 6mil
     # self._model = SAC.load(weigthts_path)
+
+    self.z_error=0.
+    self.r_error=0.
+    self.p_error=0.
+    self.y_error=0.
 
 
   def get_local(self, global_goal, curr_pos, curr_ori, img, tol=2.0):
@@ -117,6 +122,7 @@ class ObstacleAvoidanceAgent():
     siam = 0.5
     iterations = 0
     max_iter = 8 # 2m in each direction
+    # max_iter = 40 # 10m in each direction
 
     # while False: #FIXME testing stuff
     while is_collide:
@@ -152,7 +158,7 @@ class ObstacleAvoidanceAgent():
 
     local_goal=goal_inW_pos
 
-    print("global goal, curr pos, local goal:", global_goal, curr_pos, local_goal)
+    # print("global goal, curr pos, local goal:", global_goal, curr_pos, local_goal)
     return local_goal, is_move
 
 
@@ -167,10 +173,10 @@ class ObstacleAvoidanceAgent():
     # max_yaw=0.01745329 # 1deg
     max_yaw=0.01745329*5 # 5deg
     # max_yaw=0.0000000001
-    # if abs(des_yaw) > max_yaw:
-    #   des_yaw = des_yaw/abs(des_yaw)*max_yaw
+    if abs(des_yaw) > max_yaw:
+      des_yaw = des_yaw/abs(des_yaw)*max_yaw
 
-    des_yaw=q_rot[0]+0.01# FIXME DBG
+    # des_yaw=q_rot[0]+0.01# FIXME DBG
     gp_inW_rot = Rotation.from_euler('zyx', np.array([des_yaw,0.,0.]), degrees=False)
     gp_inW_het=gp_inW_rot.as_matrix()
     gp_inW_het=np.append(gp_inW_het, np.array([[0,0,0]]), axis=0)
@@ -184,9 +190,10 @@ class ObstacleAvoidanceAgent():
     uav_inG=np.matmul(w_inG, quad_inW_het)
 
     new_obs=uav_inG[0:3,-1]
-    new_obs[0]=-1.0
-    new_obs[1]=-1.0
-    new_obs[2]=5.0
+    # FIXME DBG
+    # new_obs[0]=-1.0
+    # new_obs[1]=-1.0
+    # new_obs[2]=5.0
 
     des_euler = rotationMatrixToEulerAngles(uav_inG[:3,:3])
 
@@ -215,13 +222,15 @@ class ObstacleAvoidanceAgent():
     # TODO: make preprocessing a callable function
 
     local_waypt, is_move = self.get_local(current_goal_position[0:3], obs[0,0:3], obs[0,3:6], images)
-    obs[0,-3:]= local_waypt
-    obs[0,0]=obs[0,0]-obs[0,12]
-    obs[0,1]=obs[0,1]-obs[0,13]
-    obs[0,2]=obs[0,2]-obs[0,14]+5.0
-    obs[0,12]=0.0
-    obs[0,13]=0.0
-    obs[0,14]=0.0
+
+    # FIXME
+    # obs[0,-3:]= local_waypt
+    # obs[0,0]=obs[0,0]-obs[0,12]
+    # obs[0,1]=obs[0,1]-obs[0,13]
+    # obs[0,2]=obs[0,2]-obs[0,14]+5.0
+    # obs[0,12]=0.0
+    # obs[0,13]=0.0
+    # obs[0,14]=0.0
 
     # fix rotation to point front of uav to the goal dir
     # local_waypt, des_euler = self.rotate_me(local_waypt, obs[0,0:3], obs[0,3:6])
@@ -246,9 +255,108 @@ class ObstacleAvoidanceAgent():
     # FIXME hover no div of 10
     # obs=obs/10.0
 
-    act, _ = self._model.predict(obs, deterministic=True)
-    action=act
+    # FIXME DBG
+    # act, _ = self._model.predict(obs, deterministic=True)
+    # pdb.set_trace()
+
+    local_waypt=np.array([0.,0.,4.])
+    des_r=0. # radians
+    des_p=0. # radians
+    des_y=0. # radians
+
+
+    act = np.zeros([1,4], dtype=np.float32)
+    
+    # PID for altitude
+    # g = 10.
+    # weight= 0.1
+    # z_tol = 0.3
+    # k_p_z=0.0001/2.
+    # k_d_z=0.25
+    k_p_z=0.0
+    k_d_z=0.
+    # k_d_z=0.5
+    z_error= local_waypt[2]-obs[0,2]
+    act = act + z_error*k_p_z + (z_error-self.z_error)*k_d_z
+    self.z_error=z_error
+
+    # roll time
+    k_p_r=0.1
+    k_d_r=0.
+    curr_roll=obs[0,5] 
+    if abs(curr_roll) > np.pi/2:
+      curr_roll = curr_roll - np.sign(curr_roll) * np.pi
+    r_error=des_r-curr_roll
+    # r_error = (r_error + np.pi) % (np.pi*2) - np.pi # the wrap around to be pi
+    dw_r = k_p_r* r_error + (r_error-self.r_error)*k_d_r
+    if dw_r > 0:
+      act[0,0] += dw_r
+      act[0,3] += dw_r
+    else:
+      act[0,1] += abs(dw_r)
+      act[0,2] += abs(dw_r)
+    self.r_error=r_error
+    print("roll", curr_roll)
+
+    # pitch time (basically same as roll time)
+    # k_p_p=0.1/2.
+    # k_d_p=0.75
+    k_p_p=0.
+    k_d_p=0.
+    curr_pitch=obs[0,4] 
+    if abs(curr_pitch) > np.pi/2:
+      curr_pitch = curr_pitch - np.sign(curr_pitch) * np.pi
+    p_error=des_p-curr_pitch
+    # p_error = (p_error + np.pi) % (np.pi*2) - np.pi # the wrap around to be pi
+    dw_p = k_p_p* p_error + (p_error-self.p_error)*k_d_p
+    if dw_p > 0:
+      act[0,0] += dw_p
+      act[0,1] += dw_p
+    else:
+      act[0,2] += abs(dw_p)
+      act[0,3] += abs(dw_p)
+    self.p_error=p_error
+    print("pitch", curr_pitch)
+
+    # yaw time
+    k_p_y=0.0
+    k_d_y=0.
+    # k_p_y=0.1/2.
+    # k_d_y=10.
+    curr_yaw=obs[0,3] 
+    if abs(curr_yaw) > np.pi/2:
+      curr_yaw = curr_yaw - np.sign(curr_yaw) * np.pi
+    y_error=des_y-curr_yaw
+    # y_error = (y_error + np.pi) % (np.pi*2) - np.pi # the wrap around to be pi
+    dw_y = k_p_y* y_error + (y_error-self.y_error)*k_d_y
+    if dw_y > 0:
+      act[0,0] += dw_y
+      act[0,2] += dw_y
+      act[0,1] -= abs(dw_y)
+      act[0,3] -= abs(dw_y)
+    else:
+      act[0,1] += abs(dw_y)
+      act[0,3] += abs(dw_y)
+      act[0,0] -= abs(dw_y)
+      act[0,2] -= abs(dw_y)
+    self.y_error=y_error
+    print("yaw", curr_yaw)
+
+
+    # pdb.set_trace()
+
+    # print("local_waypt", local_waypt)
+    print("obs", obs)
+    print("act", act)
+
+
+    # check if force is sufficently upward
+
     # print(action)
     # action = np.zeros([self._num_envs,self._num_acts], dtype=np.float32)
     # action[0,0] += -0.01
+
+    action=act
+
+
     return action
