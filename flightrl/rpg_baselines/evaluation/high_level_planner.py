@@ -65,8 +65,7 @@ class HighLevelPlanner():
         done = True
         self.internal_state = 0
         self.goal_reached_number = 5
-        safe_num_run = min(num_run + 1, self.num_runs-1)
-        # safe_num_run = (num_run + 1)*(num_run<self.num_runs) + (num_run-1)*(num_run==self.num_runs)
+        safe_num_run = (num_run + 1)*(num_run<(self.num_runs-1)) + num_run*(num_run==(self.num_runs-1))
         return self.goals_matrix[safe_num_run, self.internal_state, :], done, float(self.goal_reached_number)
         
       self.internal_state += 1

@@ -13,7 +13,7 @@ import pickle
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import pdb
+
 
 #
 from stable_baselines3.common import logger
@@ -87,7 +87,6 @@ def main():
     num_density_values = 10
     num_rollouts = num_density_values * num_rollouts_per_density
     n_roll = 0
-    # max_ep_length = 1
     max_ep_length = 5000
     
     high_level_planner = HighLevelPlanner(num_runs= num_rollouts_per_density,
@@ -108,18 +107,16 @@ def main():
     while n_roll < num_rollouts:
         drone_pos, drone_vel, euler, deuler, goal_pos, reward_instant = [], [], [], [], [], []
         actions = []     
-        done, ep_len = False, 0
+        done, done_from_high_level_planner, ep_len = False, False, 0
         if (n_roll == 0):
             obs = env.reset()
             images = env.get_images()
         # get current goal position 
         drone_pos = obs[0, :3]
         current_goal , _, _ = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))
-        print("current goal ", current_goal)
             
         # Single episode until termination.
-        while not (done or (ep_len >= max_ep_length)):
-            # pdb.set_trace()
+        while not (done or done_from_high_level_planner or (ep_len >= max_ep_length)):
             actions = obstacle_avoidance_agent.getActions(obs, done, images, current_goal)
 
             if ep_len == 5:
