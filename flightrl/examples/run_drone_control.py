@@ -27,7 +27,8 @@ from scipy.spatial.transform import Rotation
 #
 from flightgym import QuadrotorEnv_v1
 
-from rand_goals_callback import RandGoalsCallback
+# from rand_goals_callback import RandGoalsCallback
+from desperado import RandGoalsCallback
 
 def configure_random_seed(seed, env=None):
     if env is not None:

@@ -78,16 +78,16 @@ class RandGoalsCallback(BaseCallback):
         self.focal_len = (self.frame_height / 2.0) / math.tan(math.pi*self.camera_FOV/(180.*2.))
         # self.focal_len = (self.frame_height / 2.0) * math.tan(math.pi*self.camera_FOV/(180.*2.))
 
-    def is_goal_collide(self, img, goal_inC_pos, px_tol=10, depth_tol=200):
+    def is_goal_collide(self, img, goal_inC_pos, px_tol=10, depth_tol=10):
         is_collide=False
         row = self.focal_len * goal_inC_pos[0] / goal_inC_pos[1]
         row = int(row + (self.frame_height/2))
         col = self.focal_len * goal_inC_pos[2] / goal_inC_pos[1]
         col = int(col + (self.frame_width/2))
 
-        for i in range(-px_tol/2, px_tol/2, 1):
-            for j in range(-px_tol/2, px_tol/2, 1):
-                if img[row+i, col+j] > depth_tol:
+        for i in range(int(-1.0*px_tol/2), int(px_tol/2), 1):
+            for j in range(int(-1.0*px_tol/2), int(px_tol/2), 1):
+                if img[0,min(row+i, 127), min(127,col+j)] < depth_tol:
                     is_collide=True
         return is_collide
 
@@ -145,7 +145,7 @@ class RandGoalsCallback(BaseCallback):
         quad_inW_het=quad_inW_mat_rot.as_matrix()
         quad_inW_het=np.append(quad_inW_het, np.array([[0,0,0]]), axis=0)
         quad_inW_het=np.append(quad_inW_het.T, np.array([np.append(quad_inW_pos,[1.0])]), axis=0).T
-        print("quad_inW_het", quad_inW_het)
+        # print("quad_inW_het", quad_inW_het)
 
         # transform. darn i rly should hav just found a lib for dis bt i was too lazy
         cam_inW_het = np.matmul(quad_inW_het, self.cam_inQ_het)
@@ -159,14 +159,17 @@ class RandGoalsCallback(BaseCallback):
 
         is_fov= abs(goal_inC_theta_xy) > (math.pi*self.camera_FOV/(180.*2.)) or abs(goal_inC_theta_yz) > (math.pi*self.camera_FOV/(180.*2.))
         is_fov = not is_fov
+        
+        if goal_inC_pos[1] < 0: # if the obj is behind the camera
+            is_fov=False
 
         # Linn going cray wt the prints 
-        print("counter", self.count_ts)
-        print("goal pos in W: ", goal_inW_pos)
-        print("goal pos in C: ", goal_inC_pos)
-        print("cam in W: ", cam_inW_het)
-        print("goal_inC_theta_xy: ", goal_inC_theta_xy)
-        print("goal_inC_theta_yz: ", goal_inC_theta_yz)
+        # print("counter", self.count_ts)
+        # print("goal pos in W: ", goal_inW_pos)
+        # print("goal pos in C: ", goal_inC_pos)
+        # print("cam in W: ", cam_inW_het)
+        # print("goal_inC_theta_xy: ", goal_inC_theta_xy)
+        # print("goal_inC_theta_yz: ", goal_inC_theta_yz)
 
         return is_fov, goal_inC_theta_xy, goal_inC_theta_yz, goal_inC_pos
 
