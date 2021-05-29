@@ -76,7 +76,7 @@ class ObstacleAvoidanceAgent():
     quad_inW_euler_rot=curr_ori
     goal_inW_pos=copy.deepcopy(local_goal)
     des_rot=copy.deepcopy(curr_ori) # YPR
-    is_collide=TrueW
+    is_collide=True
     siam = 0.5
     iterations = 0
     max_iter = 8 # 2m in each direction
