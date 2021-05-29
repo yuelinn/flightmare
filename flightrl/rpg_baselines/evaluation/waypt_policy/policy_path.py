@@ -94,7 +94,7 @@ class ObstacleAvoidanceAgent():
 
       if is_fov:
         is_collide = self.callback_obj.is_goal_collide(img, goal_inC_pos)
-        if is_collide:
+        # if is_collide:
           # print(Fore.RED+"obstacle found. trying to evade....!!!!")
           # print(Style.RESET_ALL)
           # pdb.set_trace()
