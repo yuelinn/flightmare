@@ -31,7 +31,7 @@ class ObstacleAvoidanceAgent():
     self._num_acts = num_acts
     
     # initialization
-    weigthts_path="/root/challenge/flightrl/examples/saved/2021-05-03-21-08-58.zip" # hover
+    weigthts_path="/root/flightmare/flightrl/examples/saved/2021-05-03-21-08-58.zip" # hover
 
     self._model = PPO.load(weigthts_path)
 
@@ -99,17 +99,6 @@ class ObstacleAvoidanceAgent():
           # print(Style.RESET_ALL)
           # pdb.set_trace()
       else:
-        # TODO: move to see the goal
-        '''
-        if goal_inC_theta_xy > self.callback_obj.camera_FOV/2:
-          print("i should move to the right")
-          is_move=True
-        else:
-          is_move=True
-          print("i should move to the left")
-        print("bt i aint cuz i cant cuz controls still cant rotate... so just try to get to the goal for now")
-        '''
-        # print("obs out of fov. ignore checks")
         break
 
     local_goal=goal_inW_pos
