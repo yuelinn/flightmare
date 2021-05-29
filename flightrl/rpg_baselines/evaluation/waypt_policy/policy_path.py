@@ -85,6 +85,12 @@ class ObstacleAvoidanceAgent():
     self.r_error=0.
     self.p_error=0.
     self.y_error=0.
+    self.posx_error=0.
+    self.posy_error=0.
+    self.i_r = 0.
+    self.i_p = 0.
+    self.i_posx=0
+    self.i_posy=0
 
 
   def get_local(self, global_goal, curr_pos, curr_ori, img, tol=2.0):
@@ -259,36 +265,77 @@ class ObstacleAvoidanceAgent():
     # act, _ = self._model.predict(obs, deterministic=True)
     # pdb.set_trace()
 
-    local_waypt=np.array([0.,0.,4.])
-    des_r=0. # radians
-    des_p=0. # radians
-    des_y=0. # radians
+    # local_waypt=np.array([4.,4.,4.])
+    dt = 0.02
+    
+    k_p_pos=.0001/2.
+    k_d_pos = .1
+    # k_d_pos = .0000001
+    k_i_pos = .0000000
+    pid_max_pos= 0.5
+    k_p_posy = k_p_pos
+    k_d_posy = k_d_pos
+    k_i_posy = k_i_pos
+    posy_error = local_waypt[1] - obs[0,1]
+    self.i_posy= self.i_posy + posy_error*dt
+    self.i_posy = min(self.i_posy, pid_max_pos)
+    self.i_posy = max(self.i_posy, -pid_max_pos)
+    des_r = k_p_posy* posy_error + (posy_error-self.posy_error)*k_d_posy + self.i_posy*k_i_posy
+    des_r = -des_r
+    print("des_r", des_r)
 
+
+    k_p_posx = k_p_pos
+    k_d_posx = k_d_pos
+    k_i_posx = k_i_pos
+    posx_error = local_waypt[0] - obs[0,0]
+    self.i_posx= self.i_posx + posx_error*dt
+    self.i_posx = min(self.i_posx, pid_max_pos)
+    self.i_posx = max(self.i_posx, -pid_max_pos)
+    des_p = k_p_posx* posx_error + (posx_error-self.posx_error)*k_d_posx +  self.i_posx*k_i_posx
+    print("des_p", des_p)
+
+    # des_r=0.05 # radians
+    # des_p=0.05 # radians
+    des_y=0. # radians
 
     act = np.zeros([1,4], dtype=np.float32)
     
+
     # PID for altitude
     # g = 10.
     # weight= 0.1
     # z_tol = 0.3
     # k_p_z=0.0001/2.
     # k_d_z=0.25
-    k_p_z=0.0
-    k_d_z=0.
-    # k_d_z=0.5
+    k_p_z=0.001
+    k_d_z=0.25
     z_error= local_waypt[2]-obs[0,2]
     act = act + z_error*k_p_z + (z_error-self.z_error)*k_d_z
     self.z_error=z_error
 
     # roll time
-    k_p_r=0.1
-    k_d_r=0.
+    # k_p_r=.5
+    # k_d_r=1.7
+    # k_i_r=0.005
+
+    # k_p_r=.01
+    # k_i_r=0.015
+    # k_d_r=1.2
+    
+    k_p_r=.00001
+    k_i_r=0.0
+    k_d_r=0.1
+    pid_max = 0.5
+    p_max=0.0005
     curr_roll=obs[0,5] 
     if abs(curr_roll) > np.pi/2:
       curr_roll = curr_roll - np.sign(curr_roll) * np.pi
     r_error=des_r-curr_roll
-    # r_error = (r_error + np.pi) % (np.pi*2) - np.pi # the wrap around to be pi
-    dw_r = k_p_r* r_error + (r_error-self.r_error)*k_d_r
+    self.i_r = self.i_r + r_error*dt
+    dw_r = k_p_r* r_error + (r_error-self.r_error)*k_d_r + self.i_r*k_i_r
+    dw_r = min(dw_r, p_max)
+    dw_r = max(dw_r, -p_max)
     if dw_r > 0:
       act[0,0] += dw_r
       act[0,3] += dw_r
@@ -298,31 +345,40 @@ class ObstacleAvoidanceAgent():
     self.r_error=r_error
     print("roll", curr_roll)
 
+    self.i_r = min(self.i_r, pid_max)
+    self.i_r = max(self.i_r, -pid_max)
+
     # pitch time (basically same as roll time)
-    # k_p_p=0.1/2.
-    # k_d_p=0.75
-    k_p_p=0.
-    k_d_p=0.
+    k_p_p=k_p_r
+    k_d_p=k_d_r
+    k_i_p=k_i_r
+    # k_p_p=0.5
+    # k_d_p=1.7
     curr_pitch=obs[0,4] 
     if abs(curr_pitch) > np.pi/2:
       curr_pitch = curr_pitch - np.sign(curr_pitch) * np.pi
     p_error=des_p-curr_pitch
     # p_error = (p_error + np.pi) % (np.pi*2) - np.pi # the wrap around to be pi
-    dw_p = k_p_p* p_error + (p_error-self.p_error)*k_d_p
+    self.i_p = self.i_p + p_error*dt
+    self.i_p = min(self.i_p, pid_max)
+    self.i_p = max(self.i_p, -pid_max)
+    dw_p = k_p_p* p_error + (p_error-self.p_error)*k_d_p + self.i_p*k_i_p
+    dw_p = min(dw_p, p_max)
+    dw_p = max(dw_p, -p_max)
     if dw_p > 0:
-      act[0,0] += dw_p
-      act[0,1] += dw_p
+      act[0,2] += dw_p
+      act[0,3] += dw_p
     else:
-      act[0,2] += abs(dw_p)
-      act[0,3] += abs(dw_p)
+      act[0,0] += abs(dw_p)
+      act[0,1] += abs(dw_p)
     self.p_error=p_error
     print("pitch", curr_pitch)
 
     # yaw time
-    k_p_y=0.0
-    k_d_y=0.
-    # k_p_y=0.1/2.
-    # k_d_y=10.
+    # k_p_y=0.0
+    # k_d_y=0.
+    k_p_y=0.1/2.
+    k_d_y=.01
     curr_yaw=obs[0,3] 
     if abs(curr_yaw) > np.pi/2:
       curr_yaw = curr_yaw - np.sign(curr_yaw) * np.pi
